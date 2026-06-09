@@ -52,28 +52,44 @@ def main() -> None:
         f"{len(analysis['events'])} events\n"
     )
 
-    last_next: str | None = None
-    for point in points[:: args.step]:
-        response = client.post(
-            "/api/position/upcoming",
-            json={"route_id": analysis["route_id"], "lat": point.latitude, "lon": point.longitude},
-        )
+    stepped = points[:: args.step]
+    last_advice_key: tuple | None = None
+    previous = None
+    for point in stepped:
+        speed_mph = None
+        if previous is not None and point.time and previous.time:
+            dt = (point.time - previous.time).total_seconds()
+            if dt > 0:
+                speed_mph = previous.distance_2d(point) / dt / 0.44704
+        previous = point
+
+        request = {"route_id": analysis["route_id"], "lat": point.latitude, "lon": point.longitude}
+        if speed_mph is not None:
+            request["speed_mph"] = round(speed_mph, 1)
+        response = client.post("/api/position/upcoming", json=request)
         response.raise_for_status()
         upcoming = response.json()
         position_mi = upcoming["position_on_route_meters"] / MI
         timestamp = point.time.strftime("%H:%M:%S") if point.time else "        "
+        speed_str = f"{speed_mph:3.0f} mph" if speed_mph is not None else "  ? mph"
 
         if upcoming["off_route"]:
-            print(f"{timestamp}  {position_mi:6.2f} mi  OFF ROUTE")
+            print(f"{timestamp}  {position_mi:6.2f} mi  {speed_str}  OFF ROUTE")
             continue
-        if not upcoming["events"]:
+
+        advice = upcoming.get("advice")
+        if not advice:
             continue
-        nearest = upcoming["events"][0]
-        line = f"{label(nearest)} in {nearest['distance_ahead_meters'] / MI:.2f} mi"
-        # Only print when the headline alert changes, like a driver would hear it
-        if line.split(" in ")[0] != (last_next or "").split(" in ")[0]:
-            print(f"{timestamp}  {position_mi:6.2f} mi  next: {line}")
-        last_next = line
+        event = advice.get("event") or {}
+        advice_key = (advice["action"], advice.get("target_mph"), event.get("type"))
+        # Print when the advice changes, like a driver would hear it
+        if advice_key != last_advice_key:
+            if advice["action"] != "maintain":
+                print(
+                    f"{timestamp}  {position_mi:6.2f} mi  {speed_str}  "
+                    f"{advice['action'].upper().replace('_', ' ')}: {advice['message']}"
+                )
+            last_advice_key = advice_key
 
 
 if __name__ == "__main__":

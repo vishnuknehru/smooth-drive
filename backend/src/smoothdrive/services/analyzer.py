@@ -4,6 +4,7 @@ so a moving position can be evaluated without re-fetching anything."""
 import uuid
 from dataclasses import dataclass
 
+from smoothdrive.config import get_settings
 from smoothdrive.domain.models import (
     Coordinate,
     Route,
@@ -11,6 +12,7 @@ from smoothdrive.domain.models import (
     UpcomingEvent,
     UpcomingResponse,
 )
+from smoothdrive.services.advisor import advise
 from smoothdrive.services.events import extract_events
 from smoothdrive.services.geometry import cumulative_distances_m, project_onto_polyline
 from smoothdrive.services.overpass import OverpassService
@@ -47,7 +49,9 @@ class RouteAnalyzer:
         )
         return analysis
 
-    def upcoming(self, route_id: str, position: Coordinate) -> UpcomingResponse | None:
+    def upcoming(
+        self, route_id: str, position: Coordinate, speed_mph: float | None = None
+    ) -> UpcomingResponse | None:
         cached = self._cache.get(route_id)
         if cached is None:
             return None
@@ -64,9 +68,13 @@ class RouteAnalyzer:
             for event in cached.analysis.events
             if event.distance_meters > along
         ]
+        advice = None
+        if speed_mph is not None:
+            advice = advise(speed_mph, events, get_settings())
         return UpcomingResponse(
             route_id=route_id,
             position_on_route_meters=along,
             off_route=offset > OFF_ROUTE_THRESHOLD_M,
             events=events,
+            advice=advice,
         )

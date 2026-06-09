@@ -46,8 +46,17 @@ def _describe(event: UpcomingEvent, target_mph: int) -> str:
     return "Traffic signal"
 
 
+def _distance_phrase(meters: float) -> str:
+    if meters < 50:
+        return "just ahead"
+    if meters < 400:
+        yards = round(meters / 0.9144 / 50) * 50
+        return f"in {yards} yd"
+    return f"in {meters / MI:.1f} mi"
+
+
 def _message(candidate: _Candidate) -> str:
-    where = f"in {candidate.event.distance_ahead_meters / MI:.1f} mi"
+    where = _distance_phrase(candidate.event.distance_ahead_meters)
     what = _describe(candidate.event, candidate.target_mph)
     match candidate.action:
         case AdviceAction.EASE_OFF:

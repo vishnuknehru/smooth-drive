@@ -17,6 +17,10 @@
   .speed_limit { color: #1565c0; } .traffic_signal { color: #c62828; } .roundabout { color: #ef6c00; }
   #upcoming { background: #f5f5f5; padding: 8px; border-radius: 6px; margin-top: 10px; font-size: 13px; }
   .err { color: #c62828; font-size: 13px; }
+  #advice { padding: 10px; border-radius: 6px; margin-top: 10px; font-size: 14px; font-weight: 600; color: #fff; }
+  #advice.maintain { background: #2e7d32; }
+  #advice.ease_off, #advice.prepare_signal { background: #f9a825; color: #333; }
+  #advice.brake_gently, #advice.brake { background: #c62828; }
 </style>
 </head>
 <body>
@@ -33,6 +37,7 @@
     <button id="replay" disabled>Replay GPX</button>
   </div>
   <div id="status" class="hint"></div>
+  <div id="advice" hidden></div>
   <div id="upcoming" hidden></div>
   <table id="events" hidden>
     <thead><tr><th>mi</th><th>event</th></tr></thead>
@@ -116,8 +121,11 @@ $('clear').onclick = clearAll;
 $('gpx').onchange = async ev => {
   const text = await ev.target.files[0].text();
   const doc = new DOMParser().parseFromString(text, 'application/xml');
-  state.gpxPoints = [...doc.querySelectorAll('trkpt')].map(pt => ({
-    lat: parseFloat(pt.getAttribute('lat')), lon: parseFloat(pt.getAttribute('lon')) }));
+  state.gpxPoints = [...doc.querySelectorAll('trkpt')].map(pt => {
+    const time = pt.querySelector('time');
+    return { lat: parseFloat(pt.getAttribute('lat')), lon: parseFloat(pt.getAttribute('lon')),
+             t: time ? new Date(time.textContent) : null };
+  });
   if (state.gpxPoints.length < 2) { $('status').textContent = 'GPX has no track points'; return; }
   $('replay').disabled = false;
   $('status').textContent = `GPX loaded: ${state.gpxPoints.length} points`;
@@ -134,14 +142,22 @@ $('replay').onclick = async () => {
   if (!state.analysis) return;
   const cursor = addLayer(L.circleMarker([pts[0].lat, pts[0].lon],
     { radius: 8, color: '#2e7d32', fillOpacity: 1 }));
-  let i = 0;
+  let i = 0, prev = null;
   state.replayTimer = setInterval(async () => {
     if (i >= pts.length) { stopReplay(); return; }
     const p = pts[i];
     cursor.setLatLng([p.lat, p.lon]);
+    let speedMph = null;
+    if (prev && prev.t && p.t) {
+      const dt = (p.t - prev.t) / 1000;
+      if (dt > 0) speedMph = map.distance([prev.lat, prev.lon], [p.lat, p.lon]) / dt / 0.44704;
+    }
+    prev = p;
+    const body = { route_id: state.analysis.route_id, lat: p.lat, lon: p.lon };
+    if (speedMph !== null) body.speed_mph = Math.round(speedMph * 10) / 10;
     const res = await fetch('/api/position/upcoming', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ route_id: state.analysis.route_id, lat: p.lat, lon: p.lon })
+      body: JSON.stringify(body)
     });
     if (res.ok) {
       const up = await res.json();
@@ -150,8 +166,14 @@ $('replay').onclick = async () => {
       $('upcoming').hidden = false;
       $('upcoming').innerHTML =
         `<b>${(up.position_on_route_meters / MI).toFixed(2)} mi</b>` +
+        (speedMph !== null ? ` — ${speedMph.toFixed(0)} mph` : '') +
         (up.off_route ? ' <span class="err">(off route)</span>' : '') +
         (next || '<div>no events ahead</div>');
+      if (up.advice) {
+        $('advice').hidden = false;
+        $('advice').className = up.advice.action;
+        $('advice').textContent = up.advice.message;
+      }
     }
     i += 5; // skip points to keep replay brisk
   }, 300);

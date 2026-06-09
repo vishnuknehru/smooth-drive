@@ -37,7 +37,9 @@ async def analyze_route(request: AnalyzeRequest) -> RouteAnalysis:
 @router.post("/api/position/upcoming")
 async def upcoming_events(request: UpcomingRequest) -> UpcomingResponse:
     response = get_analyzer().upcoming(
-        request.route_id, Coordinate(lat=request.lat, lon=request.lon)
+        request.route_id,
+        Coordinate(lat=request.lat, lon=request.lon),
+        speed_mph=request.speed_mph,
     )
     if response is None:
         raise HTTPException(status_code=404, detail=f"Unknown route_id {request.route_id!r}")

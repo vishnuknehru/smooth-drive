@@ -101,6 +101,38 @@ def test_upcoming_flags_off_route(client: TestClient) -> None:
     assert response.json()["off_route"] is True
 
 
+def test_upcoming_without_speed_has_no_advice(client: TestClient) -> None:
+    body = _analyze(client)
+    response = client.post(
+        "/api/position/upcoming",
+        json={"route_id": body["route_id"], "lat": 51.0045, "lon": 0.0},
+    )
+    assert response.json()["advice"] is None
+
+
+def test_upcoming_with_speed_returns_advice(client: TestClient) -> None:
+    body = _analyze(client)
+    # ~500 m along at 60 mph; the 30 mph drop is ~620 m ahead: lift-off needs
+    # ~540 m so act_in ≈ 3 s → ease off
+    response = client.post(
+        "/api/position/upcoming",
+        json={"route_id": body["route_id"], "lat": 51.0045, "lon": 0.0, "speed_mph": 60},
+    )
+    advice = response.json()["advice"]
+    assert advice["action"] == "ease_off"
+    assert advice["target_mph"] == 30
+    assert "ease off" in advice["message"]
+
+
+def test_upcoming_with_low_speed_maintains(client: TestClient) -> None:
+    body = _analyze(client)
+    response = client.post(
+        "/api/position/upcoming",
+        json={"route_id": body["route_id"], "lat": 51.0045, "lon": 0.0, "speed_mph": 25},
+    )
+    assert response.json()["advice"]["action"] == "maintain"
+
+
 def test_upcoming_unknown_route_404(client: TestClient) -> None:
     response = client.post(
         "/api/position/upcoming",
