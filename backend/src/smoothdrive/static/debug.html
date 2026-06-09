@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>SmoothDrive — debug map</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+  body { margin: 0; font-family: system-ui, sans-serif; display: flex; height: 100vh; }
+  #map { flex: 1; }
+  #panel { width: 340px; overflow-y: auto; padding: 12px; border-left: 1px solid #ddd; box-sizing: border-box; }
+  h1 { font-size: 16px; margin: 0 0 8px; }
+  .hint { color: #666; font-size: 13px; }
+  button { margin: 4px 4px 4px 0; padding: 6px 10px; cursor: pointer; }
+  table { border-collapse: collapse; width: 100%; font-size: 13px; margin-top: 8px; }
+  td, th { padding: 3px 6px; border-bottom: 1px solid #eee; text-align: left; }
+  .speed_limit { color: #1565c0; } .traffic_signal { color: #c62828; } .roundabout { color: #ef6c00; }
+  #upcoming { background: #f5f5f5; padding: 8px; border-radius: 6px; margin-top: 10px; font-size: 13px; }
+  .err { color: #c62828; font-size: 13px; }
+</style>
+</head>
+<body>
+<div id="map"></div>
+<div id="panel">
+  <h1>SmoothDrive debug</h1>
+  <div class="hint">Click the map twice: start, then end. Or load a GPX recording.</div>
+  <div>
+    <button id="analyze" disabled>Analyze route</button>
+    <button id="clear">Clear</button>
+  </div>
+  <div>
+    <input type="file" id="gpx" accept=".gpx">
+    <button id="replay" disabled>Replay GPX</button>
+  </div>
+  <div id="status" class="hint"></div>
+  <div id="upcoming" hidden></div>
+  <table id="events" hidden>
+    <thead><tr><th>mi</th><th>event</th></tr></thead>
+    <tbody></tbody>
+  </table>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const map = L.map('map').setView([51.45, -0.2], 11);
+L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+  { attribution: '&copy; OpenStreetMap contributors' }).addTo(map);
+
+const state = { start: null, end: null, layers: [], analysis: null, gpxPoints: [], replayTimer: null };
+const $ = id => document.getElementById(id);
+const MI = 1609.34;
+
+const COLORS = { speed_limit: '#1565c0', traffic_signal: '#c62828', roundabout: '#ef6c00' };
+const label = e => e.type === 'speed_limit' ? `speed limit → ${e.value_mph ?? '?'} mph`
+              : e.type.replace('_', ' ');
+
+function addLayer(layer) { layer.addTo(map); state.layers.push(layer); return layer; }
+function clearAll() {
+  state.layers.forEach(l => map.removeLayer(l));
+  Object.assign(state, { start: null, end: null, layers: [], analysis: null });
+  stopReplay();
+  $('analyze').disabled = true;
+  $('events').hidden = true;
+  $('upcoming').hidden = true;
+  $('status').textContent = '';
+}
+
+map.on('click', ev => {
+  if (!state.start) {
+    state.start = ev.latlng;
+    addLayer(L.marker(ev.latlng, { title: 'start' }));
+  } else if (!state.end) {
+    state.end = ev.latlng;
+    addLayer(L.marker(ev.latlng, { title: 'end' }));
+    $('analyze').disabled = false;
+  }
+});
+
+async function analyze(start, end) {
+  $('status').textContent = 'Analyzing… (Overpass can take a minute on long routes)';
+  try {
+    const res = await fetch('/api/route/analyze', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ start: { lat: start.lat, lon: start.lng ?? start.lon },
+                             end: { lat: end.lat, lon: end.lng ?? end.lon } })
+    });
+    if (!res.ok) throw new Error((await res.json()).detail || res.statusText);
+    state.analysis = await res.json();
+    drawAnalysis();
+  } catch (err) {
+    $('status').innerHTML = `<span class="err">${err.message}</span>`;
+  }
+}
+
+function drawAnalysis() {
+  const a = state.analysis;
+  const line = a.geometry.map(p => [p.lat, p.lon]);
+  addLayer(L.polyline(line, { color: '#333', weight: 4, opacity: 0.7 }));
+  map.fitBounds(line);
+  for (const e of a.events) {
+    const marker = addLayer(L.circleMarker([e.location.lat, e.location.lon], {
+      radius: 6, color: COLORS[e.type], fillOpacity: 0.9 }));
+    marker.bindPopup(`${(e.distance_meters / MI).toFixed(2)} mi — ${label(e)}`);
+  }
+  const tbody = $('events').querySelector('tbody');
+  tbody.innerHTML = a.events.map(e =>
+    `<tr><td>${(e.distance_meters / MI).toFixed(2)}</td><td class="${e.type}">${label(e)}</td></tr>`).join('');
+  $('events').hidden = false;
+  $('status').textContent =
+    `${(a.distance_meters / MI).toFixed(1)} mi, ${a.events.length} events (route ${a.route_id})`;
+}
+
+$('analyze').onclick = () => analyze(state.start, state.end);
+$('clear').onclick = clearAll;
+
+$('gpx').onchange = async ev => {
+  const text = await ev.target.files[0].text();
+  const doc = new DOMParser().parseFromString(text, 'application/xml');
+  state.gpxPoints = [...doc.querySelectorAll('trkpt')].map(pt => ({
+    lat: parseFloat(pt.getAttribute('lat')), lon: parseFloat(pt.getAttribute('lon')) }));
+  if (state.gpxPoints.length < 2) { $('status').textContent = 'GPX has no track points'; return; }
+  $('replay').disabled = false;
+  $('status').textContent = `GPX loaded: ${state.gpxPoints.length} points`;
+};
+
+function stopReplay() {
+  if (state.replayTimer) { clearInterval(state.replayTimer); state.replayTimer = null; }
+}
+
+$('replay').onclick = async () => {
+  stopReplay();
+  const pts = state.gpxPoints;
+  if (!state.analysis) await analyze(pts[0], pts[pts.length - 1]);
+  if (!state.analysis) return;
+  const cursor = addLayer(L.circleMarker([pts[0].lat, pts[0].lon],
+    { radius: 8, color: '#2e7d32', fillOpacity: 1 }));
+  let i = 0;
+  state.replayTimer = setInterval(async () => {
+    if (i >= pts.length) { stopReplay(); return; }
+    const p = pts[i];
+    cursor.setLatLng([p.lat, p.lon]);
+    const res = await fetch('/api/position/upcoming', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ route_id: state.analysis.route_id, lat: p.lat, lon: p.lon })
+    });
+    if (res.ok) {
+      const up = await res.json();
+      const next = up.events.slice(0, 4).map(e =>
+        `<div class="${e.type}">${(e.distance_ahead_meters / MI).toFixed(2)} mi — ${label(e)}</div>`).join('');
+      $('upcoming').hidden = false;
+      $('upcoming').innerHTML =
+        `<b>${(up.position_on_route_meters / MI).toFixed(2)} mi</b>` +
+        (up.off_route ? ' <span class="err">(off route)</span>' : '') +
+        (next || '<div>no events ahead</div>');
+    }
+    i += 5; // skip points to keep replay brisk
+  }, 300);
+};
+</script>
+</body>
+</html>
