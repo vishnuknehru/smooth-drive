@@ -16,7 +16,7 @@ cp .env.example .env        # paste your OpenRouteService API key
 uv sync                     # creates .venv with Python 3.12 + deps
 ```
 
-Get a free ORS API key at <https://openrouteservice.org/dev/#/signup> (free tier: 2,000 routing requests/day).
+Get a free ORS API key at <https://openrouteservice.org/dev/#/signup> (free tier: 2,000 routing requests/day). Without a key, routing automatically falls back to the public [OSRM demo server](https://router.project-osrm.org) — fine for development, not for anything sustained.
 
 ## Run
 
