@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "smoothdrive-backend",
+      "runtimeExecutable": "uv",
+      "runtimeArgs": ["run", "--project", "backend", "uvicorn", "smoothdrive.main:app", "--app-dir", "backend/src", "--port", "8000"],
+      "port": 8000
+    }
+  ]
+}
