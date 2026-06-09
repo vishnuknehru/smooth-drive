@@ -46,6 +46,9 @@ class UpcomingRequest(BaseModel):
     route_id: str
     lat: float = Field(ge=-90, le=90)
     lon: float = Field(ge=-180, le=180)
+    speed_mph: float | None = Field(
+        default=None, ge=0, description="Current speed; enables driving advice when set"
+    )
 
 
 class UpcomingEvent(BaseModel):
@@ -55,8 +58,31 @@ class UpcomingEvent(BaseModel):
     value_mph: int | None = None
 
 
+class AdviceAction(StrEnum):
+    MAINTAIN = "maintain"
+    EASE_OFF = "ease_off"
+    BRAKE_GENTLY = "brake_gently"
+    BRAKE = "brake"
+    PREPARE_SIGNAL = "prepare_signal"
+
+
+class Advice(BaseModel):
+    action: AdviceAction
+    act_in_seconds: float | None = Field(
+        default=None, description="Time until lift-off should start; None when acting now"
+    )
+    target_mph: int | None = None
+    event: UpcomingEvent | None = Field(
+        default=None, description="The event this advice prepares for; None for maintain"
+    )
+    message: str
+
+
 class UpcomingResponse(BaseModel):
     route_id: str
     position_on_route_meters: float
     off_route: bool = Field(description="True if the position is far from the route")
     events: list[UpcomingEvent]
+    advice: Advice | None = Field(
+        default=None, description="Set when the request included speed_mph"
+    )
