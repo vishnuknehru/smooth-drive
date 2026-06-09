@@ -20,6 +20,27 @@ Goal: measure how well OSM-derived events match reality on roads you actually dr
 |------|-------|-------|-------------------------------|----------------------|---------------------|-------|
 |      |       |       |                               |                      |                     |       |
 
+## Phase 2: advice quality
+
+Replaying a drive now also prints the advice timeline and a smoothness report.
+For each real drive, judge the advisor against your driving instinct:
+
+- **Too early**: you'd have ignored it (alert fatigue risk)
+- **Right**: matched when you'd naturally lift off
+- **Too late**: you'd already have braked
+
+| Date | Route | Ease-off advice (early/right/late) | Signal advisories (useful/noisy) | Harsh events flagged correctly? | Notes |
+|------|-------|------------------------------------|----------------------------------|--------------------------------|-------|
+|      |       |                                    |                                  |                                |       |
+
+Tune via `.env` (defaults in `backend/src/smoothdrive/config.py`):
+`LIFTOFF_DECEL_MS2` (higher = later advice), `ALERT_LEAD_S` (longer = earlier
+warning), `SIGNAL_LEAD_S`, `ROUNDABOUT_ENTRY_MPH`, `SIGNAL_APPROACH_MPH`.
+
+Phase 2 advice is sound when, over 3+ drives, most ease-off advice lands
+"right", signal advisories don't feel naggy, and the smoothness score moves
+in the direction you'd expect for how the drive felt.
+
 ## Phase 1 exit criteria
 
 - 3+ recorded real drives replayed (including one 20+ mile trip), 100+ miles total

@@ -13,6 +13,9 @@ import sys
 import gpxpy
 import httpx
 
+from smoothdrive.domain.models import Coordinate
+from smoothdrive.services.smoothness import build_report
+
 MI = 1609.34
 
 
@@ -55,6 +58,7 @@ def main() -> None:
     stepped = points[:: args.step]
     last_advice_key: tuple | None = None
     previous = None
+    late_reactions = 0
     for point in stepped:
         speed_mph = None
         if previous is not None and point.time and previous.time:
@@ -89,7 +93,27 @@ def main() -> None:
                     f"{timestamp}  {position_mi:6.2f} mi  {speed_str}  "
                     f"{advice['action'].upper().replace('_', ' ')}: {advice['message']}"
                 )
+            if advice["action"] in ("brake_gently", "brake"):
+                late_reactions += 1
             last_advice_key = advice_key
+
+    samples = [
+        (p.time, Coordinate(lat=p.latitude, lon=p.longitude)) for p in points if p.time
+    ]
+    if len(samples) < 3:
+        print("\nNo timestamps in GPX — skipping smoothness report")
+        return
+    report = build_report(samples, late_reactions=late_reactions)
+    print("\n--- Drive summary ---")
+    print(f"Distance:  {report.distance_miles:.1f} mi   Duration: {report.duration_minutes:.0f} min")
+    print(f"Harsh decelerations: {len(report.harsh_events)}")
+    for event in report.harsh_events:
+        print(
+            f"  {event.time.strftime('%H:%M:%S')}  {event.from_mph:.0f}→{event.to_mph:.0f} mph "
+            f"({event.peak_decel_ms2:.1f} m/s²) at {event.location.lat:.4f},{event.location.lon:.4f}"
+        )
+    print(f"Late reactions (advisor had escalated to braking): {report.late_reactions}")
+    print(f"Smoothness score: {report.score}/100")
 
 
 if __name__ == "__main__":
