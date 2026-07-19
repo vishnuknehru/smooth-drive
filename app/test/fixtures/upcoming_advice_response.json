@@ -1,0 +1,40 @@
+{
+  "route_id": "63f3e284b7ff",
+  "position_on_route_meters": 889.5594131569804,
+  "off_route": false,
+  "events": [
+    {
+      "type": "speed_limit",
+      "distance_ahead_meters": 230.44058684301956,
+      "location": {
+        "lat": 51.010072401986285,
+        "lon": 0.0
+      },
+      "value_mph": 30
+    },
+    {
+      "type": "traffic_signal",
+      "distance_ahead_meters": 889.559413155566,
+      "location": {
+        "lat": 51.016,
+        "lon": 0.0
+      },
+      "value_mph": null
+    }
+  ],
+  "advice": {
+    "action": "ease_off",
+    "act_in_seconds": 0.7363802158448124,
+    "target_mph": 30,
+    "event": {
+      "type": "speed_limit",
+      "distance_ahead_meters": 230.44058684301956,
+      "location": {
+        "lat": 51.010072401986285,
+        "lon": 0.0
+      },
+      "value_mph": 30
+    },
+    "message": "Speed limit drops to 30 mph in 250 yd \u2014 ease off in 1 s"
+  }
+}

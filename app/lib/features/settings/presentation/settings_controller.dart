@@ -12,6 +12,11 @@ part 'settings_controller.g.dart';
 SettingsRepository settingsRepository(Ref ref) =>
     PrefsSettingsRepository(ref.watch(sharedPreferencesProvider));
 
+/// Derived so dependents (the Dio client) rebuild only when the URL
+/// actually changes, not on every settings edit.
+@Riverpod(keepAlive: true)
+String baseUrl(Ref ref) => ref.watch(settingsControllerProvider).baseUrl;
+
 @Riverpod(keepAlive: true)
 class SettingsController extends _$SettingsController {
   @override

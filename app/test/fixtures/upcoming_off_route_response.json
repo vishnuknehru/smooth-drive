@@ -1,0 +1,32 @@
+{
+  "route_id": "3b114d95dc5d",
+  "position_on_route_meters": 555.9746332228005,
+  "off_route": true,
+  "events": [
+    {
+      "type": "speed_limit",
+      "distance_ahead_meters": 564.0253667771995,
+      "location": {
+        "lat": 51.010072401986285,
+        "lon": 0.0
+      },
+      "value_mph": 30
+    },
+    {
+      "type": "traffic_signal",
+      "distance_ahead_meters": 1223.1441930897458,
+      "location": {
+        "lat": 51.016,
+        "lon": 0.0
+      },
+      "value_mph": null
+    }
+  ],
+  "advice": {
+    "action": "maintain",
+    "act_in_seconds": null,
+    "target_mph": null,
+    "event": null,
+    "message": "No action needed"
+  }
+}

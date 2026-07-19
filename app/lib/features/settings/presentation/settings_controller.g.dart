@@ -57,6 +57,54 @@ final class SettingsRepositoryProvider
 String _$settingsRepositoryHash() =>
     r'5faff3edf0c98ea2ba83899dde6c175aa28288fb';
 
+/// Derived so dependents (the Dio client) rebuild only when the URL
+/// actually changes, not on every settings edit.
+
+@ProviderFor(baseUrl)
+final baseUrlProvider = BaseUrlProvider._();
+
+/// Derived so dependents (the Dio client) rebuild only when the URL
+/// actually changes, not on every settings edit.
+
+final class BaseUrlProvider extends $FunctionalProvider<String, String, String>
+    with $Provider<String> {
+  /// Derived so dependents (the Dio client) rebuild only when the URL
+  /// actually changes, not on every settings edit.
+  BaseUrlProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'baseUrlProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$baseUrlHash();
+
+  @$internal
+  @override
+  $ProviderElement<String> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  String create(Ref ref) {
+    return baseUrl(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(String value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<String>(value),
+    );
+  }
+}
+
+String _$baseUrlHash() => r'e431bddcc3fee4ddf47607db76e6673fc5d3d3d8';
+
 @ProviderFor(SettingsController)
 final settingsControllerProvider = SettingsControllerProvider._();
 

@@ -1,0 +1,79 @@
+{
+  "route_id": "3b114d95dc5d",
+  "distance_meters": 2224.0,
+  "geometry": [
+    {
+      "lat": 51.0,
+      "lon": 0.0
+    },
+    {
+      "lat": 51.002,
+      "lon": 0.0
+    },
+    {
+      "lat": 51.004,
+      "lon": 0.0
+    },
+    {
+      "lat": 51.006,
+      "lon": 0.0
+    },
+    {
+      "lat": 51.008,
+      "lon": 0.0
+    },
+    {
+      "lat": 51.01,
+      "lon": 0.0
+    },
+    {
+      "lat": 51.012,
+      "lon": 0.0
+    },
+    {
+      "lat": 51.014,
+      "lon": 0.0
+    },
+    {
+      "lat": 51.016,
+      "lon": 0.0
+    },
+    {
+      "lat": 51.018,
+      "lon": 0.0
+    },
+    {
+      "lat": 51.02,
+      "lon": 0.0
+    }
+  ],
+  "events": [
+    {
+      "type": "speed_limit",
+      "distance_meters": 0.0,
+      "location": {
+        "lat": 51.0,
+        "lon": 0.0
+      },
+      "value_mph": 40
+    },
+    {
+      "type": "speed_limit",
+      "distance_meters": 1120.0,
+      "location": {
+        "lat": 51.010072401986285,
+        "lon": 0.0
+      },
+      "value_mph": 30
+    },
+    {
+      "type": "traffic_signal",
+      "distance_meters": 1779.1188263125464,
+      "location": {
+        "lat": 51.016,
+        "lon": 0.0
+      },
+      "value_mph": null
+    }
+  ]
+}
