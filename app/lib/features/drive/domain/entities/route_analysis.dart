@@ -1,10 +1,14 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'route_analysis.freezed.dart';
+part 'route_analysis.g.dart';
 
 @freezed
 abstract class Coord with _$Coord {
   const factory Coord({required double lat, required double lon}) = _Coord;
+
+  // Serializable so Journey (persisted locally) can embed coordinates.
+  factory Coord.fromJson(Map<String, dynamic> json) => _$CoordFromJson(json);
 }
 
 enum EventType { speedLimit, trafficSignal, roundabout, unknown }

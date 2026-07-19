@@ -11,6 +11,7 @@ part of 'route_analysis.dart';
 
 // dart format off
 T _$identity<T>(T value) => value;
+
 /// @nodoc
 mixin _$Coord {
 
@@ -21,6 +22,8 @@ mixin _$Coord {
 @pragma('vm:prefer-inline')
 $CoordCopyWith<Coord> get copyWith => _$CoordCopyWithImpl<Coord>(this as Coord, _$identity);
 
+  /// Serializes this Coord to a JSON map.
+  Map<String, dynamic> toJson();
 
 
 @override
@@ -28,7 +31,7 @@ bool operator ==(Object other) {
   return identical(this, other) || (other.runtimeType == runtimeType&&other is Coord&&(identical(other.lat, lat) || other.lat == lat)&&(identical(other.lon, lon) || other.lon == lon));
 }
 
-
+@JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode => Object.hash(runtimeType,lat,lon);
 
@@ -204,11 +207,11 @@ return $default(_that.lat,_that.lon);case _:
 }
 
 /// @nodoc
-
+@JsonSerializable()
 
 class _Coord implements Coord {
   const _Coord({required this.lat, required this.lon});
-  
+  factory _Coord.fromJson(Map<String, dynamic> json) => _$CoordFromJson(json);
 
 @override final  double lat;
 @override final  double lon;
@@ -219,14 +222,17 @@ class _Coord implements Coord {
 @pragma('vm:prefer-inline')
 _$CoordCopyWith<_Coord> get copyWith => __$CoordCopyWithImpl<_Coord>(this, _$identity);
 
-
+@override
+Map<String, dynamic> toJson() {
+  return _$CoordToJson(this, );
+}
 
 @override
 bool operator ==(Object other) {
   return identical(this, other) || (other.runtimeType == runtimeType&&other is _Coord&&(identical(other.lat, lat) || other.lat == lat)&&(identical(other.lon, lon) || other.lon == lon));
 }
 
-
+@JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode => Object.hash(runtimeType,lat,lon);
 
