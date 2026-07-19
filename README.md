@@ -4,7 +4,9 @@ Drive smoother. Brake less. Arrive relaxed.
 
 SmoothDrive tells drivers what's coming on the road ahead — speed-limit changes, traffic signals, roundabouts — so they can ease off early instead of braking hard.
 
-**Phase 1 (this repo today):** a feasibility prototype. A FastAPI backend that, given a start and end point, returns the upcoming driving events along the route from OpenStreetMap data, plus a debug map and a GPX record-and-replay harness to validate against real drives.
+**Phase 1–2 (backend/):** a FastAPI backend that, given a start and end point, returns the upcoming driving events along the route from OpenStreetMap data plus physics-based driving advice, with a debug map and a GPX record-and-replay harness to validate against real drives.
+
+**Phase 3 (app/):** the Flutter Android MVP — consumes the backend and presents live driving guidance. See [app development](#flutter-app-phase-3) below.
 
 ## Setup
 
@@ -44,9 +46,28 @@ Record a drive with any GPX tracker app (GPSLogger/OSMTracker on Android, Open G
 uv run python ../tools/gpx_replay.py path/to/drive.gpx
 ```
 
+## Flutter app (Phase 3)
+
+Prerequisites: [Flutter](https://docs.flutter.dev/get-started/install) stable + Android SDK.
+
+```bash
+cd app
+flutter pub get
+dart run build_runner build --delete-conflicting-outputs   # after model/provider changes
+flutter test
+flutter run          # emulator reaches the backend at http://10.0.2.2:8000
+```
+
+On a physical device, set the server URL in the app's Settings to your Mac's LAN IP (or run `adb reverse tcp:8000 tcp:8000` and keep the default). CI for the app lives in `.github/workflows/app-ci.yml` (format, analyze, tests, coverage, release APK artifact).
+
 ## Project layout
 
 ```
+app/lib/
+  core/        config, network, router, theme, utils, top-level providers
+  features/    home, drive, summary, settings — each data/domain/presentation
+  services/    voice guidance abstraction
+  shared/      reusable widgets
 backend/src/smoothdrive/
   api/         FastAPI endpoints
   domain/      Pydantic models (Event, Route, ...)
