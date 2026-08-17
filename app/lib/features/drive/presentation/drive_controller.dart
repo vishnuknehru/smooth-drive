@@ -4,6 +4,9 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../core/error/failure.dart';
 import '../../../core/providers.dart';
+import '../../../services/voice/flutter_tts_voice_service.dart';
+import '../../../services/voice/voice_announcer.dart';
+import '../../settings/presentation/settings_controller.dart';
 import '../../summary/data/file_journey_repository.dart';
 import '../../summary/domain/entities/journey.dart';
 import '../data/geolocator_location_service.dart';
@@ -20,6 +23,7 @@ part 'drive_controller.g.dart';
 class DriveController extends _$DriveController {
   DriveSession? _session;
   StreamSubscription<DriveTick>? _ticks;
+  VoiceAnnouncer? _announcer;
 
   @override
   DriveState build() {
@@ -54,6 +58,7 @@ class DriveController extends _$DriveController {
         recorder: JourneyRecorder(),
       );
       _session = session;
+      _announcer = VoiceAnnouncer(voice: ref.read(voiceServiceProvider));
       state = DriveState.driving(
         route: route,
         startedAt: ref.read(clockProvider)(),
@@ -65,6 +70,15 @@ class DriveController extends _$DriveController {
             // The session swaps routes after a backend-restart recovery.
             route: session.route ?? driving.route,
           );
+          final settings = ref.read(settingsControllerProvider);
+          final announcer = _announcer;
+          if (announcer != null) {
+            unawaited(announcer.onTick(
+              tick,
+              voiceEnabled: settings.voiceEnabled,
+              alertDistanceMeters: settings.alertDistanceMeters,
+            ));
+          }
         }
       });
     } on Failure catch (failure) {
@@ -97,6 +111,8 @@ class DriveController extends _$DriveController {
     await _ticks?.cancel();
     _ticks = null;
     _session = null;
+    _announcer?.reset();
+    _announcer = null;
   }
 
   String _newJourneyId() =>

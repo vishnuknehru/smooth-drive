@@ -13,9 +13,13 @@ import 'package:smoothdrive/features/drive/domain/entities/upcoming.dart';
 import 'package:smoothdrive/features/drive/domain/repositories/route_repository.dart';
 import 'package:smoothdrive/features/drive/domain/services/location_service.dart';
 import 'package:smoothdrive/features/drive/presentation/drive_controller.dart';
+import 'package:smoothdrive/features/settings/domain/settings.dart';
+import 'package:smoothdrive/features/settings/presentation/settings_controller.dart';
 import 'package:smoothdrive/features/summary/data/file_journey_repository.dart';
 import 'package:smoothdrive/features/summary/domain/entities/journey.dart';
 import 'package:smoothdrive/features/summary/domain/repositories/journey_repository.dart';
+import 'package:smoothdrive/services/voice/flutter_tts_voice_service.dart';
+import 'package:smoothdrive/services/voice/voice_service.dart';
 
 final t0 = DateTime.utc(2026, 7, 1, 9);
 const destination = Coord(lat: 51.33627, lon: -0.267567);
@@ -48,6 +52,20 @@ class FakeLocation implements LocationService {
 
   @override
   Stream<GeoSample> positionStream() => controller.stream;
+}
+
+class _FakeSettings extends SettingsController {
+  @override
+  Settings build() => const Settings();
+}
+
+class FakeVoiceSvc implements VoiceService {
+  @override
+  Future<void> speak(String text) async {}
+  @override
+  Future<void> stop() async {}
+  @override
+  void dispose() {}
 }
 
 class FakeJourneyRepo implements JourneyRepository {
@@ -110,6 +128,8 @@ ProviderContainer makeContainer({
       locationServiceProvider.overrideWithValue(location),
       routeRepositoryProvider.overrideWithValue(repo),
       journeyRepositoryProvider.overrideWithValue(journeyRepo ?? FakeJourneyRepo()),
+      voiceServiceProvider.overrideWithValue(FakeVoiceSvc()),
+      settingsControllerProvider.overrideWith(() => _FakeSettings()),
       clockProvider.overrideWithValue(() => t0),
     ],
   );
