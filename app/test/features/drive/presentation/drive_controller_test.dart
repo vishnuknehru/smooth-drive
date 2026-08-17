@@ -13,6 +13,9 @@ import 'package:smoothdrive/features/drive/domain/entities/upcoming.dart';
 import 'package:smoothdrive/features/drive/domain/repositories/route_repository.dart';
 import 'package:smoothdrive/features/drive/domain/services/location_service.dart';
 import 'package:smoothdrive/features/drive/presentation/drive_controller.dart';
+import 'package:smoothdrive/features/summary/data/file_journey_repository.dart';
+import 'package:smoothdrive/features/summary/domain/entities/journey.dart';
+import 'package:smoothdrive/features/summary/domain/repositories/journey_repository.dart';
 
 final t0 = DateTime.utc(2026, 7, 1, 9);
 const destination = Coord(lat: 51.33627, lon: -0.267567);
@@ -45,6 +48,20 @@ class FakeLocation implements LocationService {
 
   @override
   Stream<GeoSample> positionStream() => controller.stream;
+}
+
+class FakeJourneyRepo implements JourneyRepository {
+  Journey? saved;
+
+  @override
+  Future<void> save(Journey journey) async => saved = journey;
+
+  @override
+  Future<Journey?> load(String id) async => saved?.id == id ? saved : null;
+
+  @override
+  Future<List<Journey>> recent({int limit = 10}) async =>
+      saved == null ? [] : [saved!];
 }
 
 class FakeRepo implements RouteRepository {
@@ -86,11 +103,13 @@ class FakeRepo implements RouteRepository {
 ProviderContainer makeContainer({
   required FakeLocation location,
   required FakeRepo repo,
+  FakeJourneyRepo? journeyRepo,
 }) {
   final container = ProviderContainer(
     overrides: [
       locationServiceProvider.overrideWithValue(location),
       routeRepositoryProvider.overrideWithValue(repo),
+      journeyRepositoryProvider.overrideWithValue(journeyRepo ?? FakeJourneyRepo()),
       clockProvider.overrideWithValue(() => t0),
     ],
   );

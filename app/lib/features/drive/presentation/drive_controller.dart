@@ -4,6 +4,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../core/error/failure.dart';
 import '../../../core/providers.dart';
+import '../../summary/data/file_journey_repository.dart';
 import '../../summary/domain/entities/journey.dart';
 import '../data/geolocator_location_service.dart';
 import '../data/route_repository_impl.dart';
@@ -80,6 +81,7 @@ class DriveController extends _$DriveController {
     final session = _session!;
     _session = null;
     final journey = await session.stop(journeyId: _newJourneyId());
+    await ref.read(journeyRepositoryProvider).save(journey);
     state = DriveState.done(journey: journey);
     return journey;
   }

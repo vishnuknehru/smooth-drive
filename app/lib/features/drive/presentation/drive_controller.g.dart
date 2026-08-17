@@ -41,7 +41,7 @@ final class DriveControllerProvider
   }
 }
 
-String _$driveControllerHash() => r'7e10250ed1973d5f444bd661a503c2ae3274c832';
+String _$driveControllerHash() => r'02b6105798db210681495f17c21a4078720f1a94';
 
 abstract class _$DriveController extends $Notifier<DriveState> {
   DriveState build();

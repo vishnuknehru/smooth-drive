@@ -66,6 +66,10 @@ class _DriveScreenState extends ConsumerState<DriveScreen> {
             ),
           DriveDone(:final journey) => _DoneView(
               score: journey.score,
+              onViewSummary: () {
+                ref.read(driveControllerProvider.notifier).reset();
+                context.go(Routes.summary(journey.id));
+              },
               onClose: () {
                 ref.read(driveControllerProvider.notifier).reset();
                 context.go(Routes.home);
@@ -232,9 +236,14 @@ class _Progress extends StatelessWidget {
 }
 
 class _DoneView extends StatelessWidget {
-  const _DoneView({required this.score, required this.onClose});
+  const _DoneView({
+    required this.score,
+    required this.onViewSummary,
+    required this.onClose,
+  });
 
   final int score;
+  final VoidCallback onViewSummary;
   final VoidCallback onClose;
 
   @override
@@ -257,7 +266,9 @@ class _DoneView extends StatelessWidget {
             style: Theme.of(context).textTheme.titleLarge,
           ),
           const SizedBox(height: 32),
-          BigActionButton(label: 'Done', onPressed: onClose),
+          BigActionButton(label: 'View Summary', onPressed: onViewSummary),
+          const SizedBox(height: 12),
+          TextButton(onPressed: onClose, child: const Text('Back to Home')),
         ],
       ),
     );
