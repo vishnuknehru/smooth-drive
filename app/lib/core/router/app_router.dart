@@ -1,6 +1,8 @@
 import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../../features/drive/domain/entities/drive_state.dart';
+import '../../features/drive/presentation/drive_controller.dart';
 import '../../features/drive/presentation/drive_screen.dart';
 import '../../features/home/presentation/home_screen.dart';
 import '../../features/settings/presentation/settings_screen.dart';
@@ -18,6 +20,14 @@ abstract final class Routes {
 
 @Riverpod(keepAlive: true)
 GoRouter appRouter(Ref ref) => GoRouter(
+  // Process-death safety: never restore into /drive without a session.
+  redirect: (context, state) {
+    if (state.matchedLocation == Routes.drive &&
+        ref.read(driveControllerProvider) is DriveIdle) {
+      return Routes.home;
+    }
+    return null;
+  },
   routes: [
     GoRoute(path: Routes.home, builder: (context, state) => const HomeScreen()),
     GoRoute(

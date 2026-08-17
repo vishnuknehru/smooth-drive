@@ -6,11 +6,17 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../domain/entities/geo_sample.dart';
 import '../domain/entities/route_analysis.dart';
 import '../domain/services/location_service.dart';
+import 'replay_location_service.dart';
 
 part 'geolocator_location_service.g.dart';
 
+/// `flutter run --dart-define=REPLAY_GPS=true` replays the bundled GPX
+/// instead of using real GPS — deterministic drives on the emulator.
+const replayGpsEnabled = bool.fromEnvironment('REPLAY_GPS');
+
 @Riverpod(keepAlive: true)
-LocationService locationService(Ref ref) => GeolocatorLocationService();
+LocationService locationService(Ref ref) =>
+    replayGpsEnabled ? ReplayLocationService() : GeolocatorLocationService();
 
 /// Thin adapter over geolocator; excluded from coverage, its contract is
 /// exercised through fakes everywhere else.

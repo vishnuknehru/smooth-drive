@@ -18,6 +18,10 @@ SettingsRepository settingsRepository(Ref ref) =>
 String baseUrl(Ref ref) => ref.watch(settingsControllerProvider).baseUrl;
 
 @Riverpod(keepAlive: true)
+UnitsFormatter unitsFormatter(Ref ref) =>
+    UnitsFormatter(ref.watch(settingsControllerProvider).units);
+
+@Riverpod(keepAlive: true)
 class SettingsController extends _$SettingsController {
   @override
   Settings build() => ref.watch(settingsRepositoryProvider).load();

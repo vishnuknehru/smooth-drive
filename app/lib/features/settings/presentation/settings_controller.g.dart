@@ -105,6 +105,47 @@ final class BaseUrlProvider extends $FunctionalProvider<String, String, String>
 
 String _$baseUrlHash() => r'e431bddcc3fee4ddf47607db76e6673fc5d3d3d8';
 
+@ProviderFor(unitsFormatter)
+final unitsFormatterProvider = UnitsFormatterProvider._();
+
+final class UnitsFormatterProvider
+    extends $FunctionalProvider<UnitsFormatter, UnitsFormatter, UnitsFormatter>
+    with $Provider<UnitsFormatter> {
+  UnitsFormatterProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'unitsFormatterProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$unitsFormatterHash();
+
+  @$internal
+  @override
+  $ProviderElement<UnitsFormatter> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  UnitsFormatter create(Ref ref) {
+    return unitsFormatter(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(UnitsFormatter value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<UnitsFormatter>(value),
+    );
+  }
+}
+
+String _$unitsFormatterHash() => r'dcdcdc16cee07b8c4629b64065eef26f46071970';
+
 @ProviderFor(SettingsController)
 final settingsControllerProvider = SettingsControllerProvider._();
 
