@@ -122,4 +122,14 @@ void main() {
     final journey = recorder.finalize(id: 'j3');
     expect(journey.samples, hasLength(5));
   });
+
+  test('isEmpty is true before any samples are added', () {
+    expect(JourneyRecorder().isEmpty, isTrue);
+  });
+
+  test('isEmpty is false after the first sample', () {
+    final recorder = JourneyRecorder();
+    recorder.addSample(sample(0));
+    expect(recorder.isEmpty, isFalse);
+  });
 }

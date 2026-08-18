@@ -22,6 +22,19 @@ class FakeVoice implements VoiceService {
   void dispose() {}
 }
 
+class _DisposeSpy implements VoiceService {
+  _DisposeSpy(this._inner, {required this.onDispose});
+  final VoiceService _inner;
+  final void Function() onDispose;
+
+  @override
+  Future<void> speak(String text) => _inner.speak(text);
+  @override
+  Future<void> stop() => _inner.stop();
+  @override
+  void dispose() => onDispose();
+}
+
 const _baseCoord = Coord(lat: 51.0, lon: 0.0);
 const _signalCoord = Coord(lat: 51.01, lon: 0.0);
 
@@ -249,6 +262,34 @@ void main() {
       alertDistanceMeters: 200,
     );
     expect(voice.spoken, ['Speed limit changing to 30 miles per hour']);
+  });
+
+  test('unknown event type is announced as "Hazard ahead"', () async {
+    final voice = FakeVoice();
+    final a = VoiceAnnouncer(voice: voice, now: () => t0);
+    await a.onTick(
+      _tick(
+        events: const [
+          UpcomingEvent(
+            type: EventType.unknown,
+            distanceAheadMeters: 100,
+            location: _signalCoord,
+          ),
+        ],
+      ),
+      voiceEnabled: true,
+      alertDistanceMeters: 200,
+    );
+    expect(voice.spoken, ['Hazard ahead']);
+  });
+
+  test('dispose delegates to the underlying voice service', () {
+    final voice = FakeVoice();
+    var disposed = false;
+    // Wrap FakeVoice so we can observe dispose().
+    final wrapper = _DisposeSpy(voice, onDispose: () => disposed = true);
+    VoiceAnnouncer(voice: wrapper, now: () => t0).dispose();
+    expect(disposed, isTrue);
   });
 
   test('reset clears state so events and advice re-trigger', () async {

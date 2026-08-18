@@ -44,4 +44,24 @@ void main() {
     await tester.pumpAndSettle();
     expect(prefs.getString('settings.baseUrl'), 'http://192.168.0.42:8000');
   });
+
+  testWidgets('theme segmented button switches to light mode', (tester) async {
+    final prefs = await pumpSettings(tester);
+    await tester.tap(find.text('Light'));
+    await tester.pumpAndSettle();
+    expect(prefs.getString('settings.themeMode'), 'light');
+  });
+
+  testWidgets('base URL field saves via keyboard submit', (tester) async {
+    final prefs = await pumpSettings(tester);
+    await tester.scrollUntilVisible(
+      find.byType(TextField),
+      100,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.enterText(find.byType(TextField), 'http://10.0.2.2:8000');
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pumpAndSettle();
+    expect(prefs.getString('settings.baseUrl'), 'http://10.0.2.2:8000');
+  });
 }

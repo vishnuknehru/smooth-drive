@@ -85,4 +85,45 @@ void main() {
     expect(results.length, 1);
     expect(results.first.id, 'good');
   });
+
+  test('save and load round-trips harshEvents and samples', () async {
+    final repo = _repo(tmp);
+    final journey = Journey(
+      id: 'rich-journey',
+      startedAt: t0,
+      endedAt: t0.add(const Duration(minutes: 5)),
+      start: const Coord(lat: 51.0, lon: 0.0),
+      end: const Coord(lat: 51.02, lon: 0.0),
+      distanceMeters: 2000,
+      durationSeconds: 300,
+      harshEvents: [
+        HarshEvent(
+          time: t0.add(const Duration(seconds: 30)),
+          location: const Coord(lat: 51.01, lon: 0.0),
+          fromMps: 15.0,
+          toMps: 2.0,
+          peakDecelMs2: 4.5,
+        ),
+      ],
+      lateReactions: 1,
+      score: 75,
+      samples: [
+        JourneySample(
+          time: t0.add(const Duration(seconds: 10)),
+          coord: const Coord(lat: 51.005, lon: 0.0),
+          speedMps: 13.4,
+          limitMph: 30,
+        ),
+      ],
+    );
+
+    await repo.save(journey);
+    final loaded = await repo.load('rich-journey');
+
+    expect(loaded, isNotNull);
+    expect(loaded!.harshEvents, hasLength(1));
+    expect(loaded.harshEvents.single.peakDecelMs2, closeTo(4.5, 0.01));
+    expect(loaded.samples, hasLength(1));
+    expect(loaded.samples.single.limitMph, 30);
+  });
 }

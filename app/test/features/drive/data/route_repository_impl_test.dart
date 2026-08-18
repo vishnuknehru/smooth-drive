@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http_mock_adapter/http_mock_adapter.dart';
 import 'package:smoothdrive/core/error/failure.dart';
 import 'package:smoothdrive/features/drive/data/dto/route_dtos.dart';
+import 'package:smoothdrive/features/drive/domain/entities/advice.dart';
 import 'package:smoothdrive/features/drive/data/route_remote_data_source.dart';
 import 'package:smoothdrive/features/drive/data/route_repository_impl.dart';
 import 'package:smoothdrive/features/drive/domain/entities/route_analysis.dart';
@@ -172,6 +173,28 @@ void main() {
         throwsA(isA<RouteExpiredFailure>()),
       );
     });
+  });
+
+  test('AdviceDto.toEntity maps brakeGently, brake, prepareSignal', () {
+    for (final (action, expected) in [
+      (AdviceActionDto.brakeGently, AdviceAction.brakeGently),
+      (AdviceActionDto.brake, AdviceAction.brake),
+      (AdviceActionDto.prepareSignal, AdviceAction.prepareSignal),
+    ]) {
+      final dto = AdviceDto(action: action, message: 'test');
+      expect(dto.toEntity().action, expected);
+    }
+  });
+
+  test('Failure.toString includes runtimeType and message', () {
+    expect(
+      NetworkFailure().toString(),
+      contains('NetworkFailure'),
+    );
+    expect(
+      UnknownFailure().toString(),
+      contains('UnknownFailure'),
+    );
   });
 
   test('healthCheck true on ok, false on network error', () async {

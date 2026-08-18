@@ -90,4 +90,38 @@ void main() {
     final profile = speedProfile(samples);
     expect(profile.every((p) => mphOf(p) < 40), isTrue);
   });
+
+  test('consecutive harsh deceleration steps extend the same event', () {
+    // Build SpeedPoints directly to bypass the moving-average smoothing and
+    // exercise the "extend current event" branch in findHarshDecelerations.
+    final t = start;
+    final loc = const Coord(lat: 51.0, lon: 0.0);
+    final profile = [
+      SpeedPoint(time: t,                             location: loc, speedMps: 15.0),
+      SpeedPoint(time: t.add(const Duration(seconds: 1)), location: loc, speedMps: 11.0), // decel 4 m/s² → harsh
+      SpeedPoint(time: t.add(const Duration(seconds: 2)), location: loc, speedMps:  7.0), // decel 4 m/s² → still harsh
+      SpeedPoint(time: t.add(const Duration(seconds: 3)), location: loc, speedMps:  3.0), // decel 4 m/s² → still harsh
+      SpeedPoint(time: t.add(const Duration(seconds: 4)), location: loc, speedMps:  2.5), // decel 0.5 m/s² → closes event
+    ];
+    final harsh = findHarshDecelerations(profile);
+    // All three harsh steps belong to one event.
+    expect(harsh, hasLength(1));
+    expect(harsh.single.fromMps, closeTo(15.0, 0.01));
+    expect(harsh.single.toMps, closeTo(3.0, 0.01)); // last harsh step's b.speedMps
+    expect(harsh.single.peakDecelMs2, closeTo(4.0, 0.01));
+  });
+
+  test('harsh event still open at end of sequence is flushed', () {
+    // When the sequence ends while still in a harsh deceleration (no
+    // gentle recovery step), the open event must still be emitted.
+    final t = start;
+    final loc = const Coord(lat: 51.0, lon: 0.0);
+    final profile = [
+      SpeedPoint(time: t,                             location: loc, speedMps: 15.0),
+      SpeedPoint(time: t.add(const Duration(seconds: 1)), location: loc, speedMps: 11.0), // harsh
+      SpeedPoint(time: t.add(const Duration(seconds: 2)), location: loc, speedMps:  7.0), // harsh — sequence ends here
+    ];
+    final harsh = findHarshDecelerations(profile);
+    expect(harsh, hasLength(1));
+  });
 }

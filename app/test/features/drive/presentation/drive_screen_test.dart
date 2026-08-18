@@ -228,4 +228,48 @@ void main() {
     await pumpDrive(tester, driving());
     expect(find.text('GPS signal lost'), findsNothing);
   });
+
+  testWidgets('saving state shows progress indicator', (tester) async {
+    await pumpDrive(tester, const DriveState.saving());
+    expect(find.textContaining('Saving'), findsOneWidget);
+    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+  });
+
+  testWidgets('upstream failure shows cloud_off icon', (tester) async {
+    await pumpDrive(
+      tester,
+      const DriveState.error(failure: UpstreamFailure()),
+    );
+    expect(find.byIcon(Icons.cloud_off_outlined), findsOneWidget);
+  });
+
+  testWidgets('unknown failure shows generic error icon', (tester) async {
+    await pumpDrive(
+      tester,
+      const DriveState.error(failure: UnknownFailure()),
+    );
+    expect(find.byIcon(Icons.error_outline), findsOneWidget);
+  });
+
+  testWidgets('upcoming events list shows "Road change" for unknown event type',
+      (tester) async {
+    await pumpDrive(
+      tester,
+      driving(
+        t: tick().copyWith(
+          update: tick().update?.copyWith(
+            events: const [
+              UpcomingEvent(
+                type: EventType.unknown,
+                distanceAheadMeters: 200,
+                location: Coord(lat: 51.05, lon: 0.0),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    expect(find.text('Road change'), findsOneWidget);
+    expect(find.byIcon(Icons.info_outline), findsOneWidget);
+  });
 }

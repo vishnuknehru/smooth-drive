@@ -1,7 +1,9 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smoothdrive/core/config/app_config.dart';
+import 'package:smoothdrive/core/error/failure.dart';
 import 'package:smoothdrive/core/network/api_client.dart';
 import 'package:smoothdrive/core/providers.dart';
 import 'package:smoothdrive/features/settings/presentation/settings_controller.dart';
@@ -32,5 +34,31 @@ void main() {
       container.read(dioProvider).options.baseUrl,
       'http://192.168.1.20:8000',
     );
+  });
+
+  group('mapDioError', () {
+    test('badResponse with unknown status code → UnknownFailure', () {
+      final e = DioException(
+        type: DioExceptionType.badResponse,
+        requestOptions: RequestOptions(path: '/'),
+        response: Response(
+          requestOptions: RequestOptions(path: '/'),
+          statusCode: 503,
+        ),
+      );
+      final f = mapDioError(e);
+      expect(f, isA<UnknownFailure>());
+      expect(f.toString(), contains('503'));
+    });
+
+    test('cancel type → UnknownFailure with message', () {
+      final e = DioException(
+        type: DioExceptionType.cancel,
+        requestOptions: RequestOptions(path: '/'),
+        message: 'Cancelled by caller',
+      );
+      final f = mapDioError(e);
+      expect(f, isA<UnknownFailure>());
+    });
   });
 }

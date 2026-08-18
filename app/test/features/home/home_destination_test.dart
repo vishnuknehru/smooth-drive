@@ -100,4 +100,73 @@ void main() {
     expect(selected, isNotNull);
     expect(selected!.lat, closeTo(51.5, 0.0001));
   });
+
+  testWidgets('keyboard submit on text field triggers navigation', (tester) async {
+    Coord? selected;
+    await _pumpSheet(tester, onSelected: (c) => selected = c);
+
+    await tester.enterText(find.byType(TextField), '51.5074, -0.1278');
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pump();
+
+    expect(selected, isNotNull);
+    expect(selected!.lat, closeTo(51.5074, 0.0001));
+  });
+
+  testWidgets('"Save this location" saves typed coord and shows snackbar',
+      (tester) async {
+    await _pumpSheet(tester, onSelected: (_) {});
+
+    // Type a valid coord first so the save logic has something to save.
+    await tester.enterText(find.byType(TextField), '51.4, -0.2');
+    await tester.pump();
+
+    await tester.tap(find.byIcon(Icons.bookmark_add_outlined));
+    await tester.pump(); // trigger async save
+    await tester.pump(); // let SnackBar appear
+
+    expect(find.textContaining('Saved as'), findsOneWidget);
+  });
+
+  testWidgets('"Save this location" without a coord shows error snackbar',
+      (tester) async {
+    await _pumpSheet(tester, onSelected: (_) {});
+
+    // Don't enter any text — field is empty.
+    await tester.tap(find.byIcon(Icons.bookmark_add_outlined));
+    await tester.pump();
+    await tester.pump();
+
+    expect(find.textContaining('Enter lat, lon first'), findsOneWidget);
+  });
+
+  testWidgets('delete button removes a saved place', (tester) async {
+    SharedPreferences.setMockInitialValues({
+      'saved_places': [
+        '{"name":"Gym","lat":51.3,"lon":-0.15}',
+      ],
+    });
+    final prefs = await SharedPreferences.getInstance();
+    await tester.pumpWidget(
+      ProviderScope(
+        key: UniqueKey(),
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          journeyRepositoryProvider.overrideWithValue(_NoopJourneyRepo()),
+        ],
+        child: MaterialApp(
+          theme: AppTheme.light,
+          home: Scaffold(
+            body: DestinationSheet(onDestinationSelected: (_) {}),
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('Gym'), findsOneWidget);
+    await tester.tap(find.byIcon(Icons.delete_outline));
+    await tester.pump();
+
+    expect(find.text('Gym'), findsNothing);
+  });
 }
