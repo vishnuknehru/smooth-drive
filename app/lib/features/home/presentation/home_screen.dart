@@ -42,7 +42,11 @@ class HomeScreen extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const Spacer(),
-              Icon(Icons.directions_car_filled, size: 96, color: scheme.primary),
+              Icon(
+                Icons.directions_car_filled,
+                size: 96,
+                color: scheme.primary,
+              ),
               const SizedBox(height: 12),
               Text(
                 'Drive smoother.',
@@ -101,10 +105,7 @@ class _RecentJourneys extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Recent journeys',
-          style: Theme.of(context).textTheme.titleMedium,
-        ),
+        Text('Recent journeys', style: Theme.of(context).textTheme.titleMedium),
         const SizedBox(height: 8),
         asyncJourneys.when(
           loading: () => const SizedBox(
@@ -113,17 +114,17 @@ class _RecentJourneys extends ConsumerWidget {
           ),
           error: (err, stack) => Text(
             'Could not load journeys',
-            style:
-                Theme.of(context).textTheme.bodyMedium?.copyWith(color: scheme.error),
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(color: scheme.error),
           ),
           data: (journeys) {
             if (journeys.isEmpty) {
               return Text(
                 'No journeys yet',
-                style: Theme.of(context)
-                    .textTheme
-                    .bodyMedium
-                    ?.copyWith(color: scheme.onSurfaceVariant),
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: scheme.onSurfaceVariant,
+                ),
               );
             }
             return Column(

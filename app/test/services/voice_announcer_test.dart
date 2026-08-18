@@ -39,36 +39,37 @@ const _baseCoord = Coord(lat: 51.0, lon: 0.0);
 const _signalCoord = Coord(lat: 51.01, lon: 0.0);
 
 GeoSample _sample(int sec) => GeoSample(
-      time: t0.add(Duration(seconds: sec)),
-      coord: _baseCoord,
-      speedMps: 13,
-      accuracyM: 5,
-    );
+  time: t0.add(Duration(seconds: sec)),
+  coord: _baseCoord,
+  speedMps: 13,
+  accuracyM: 5,
+);
 
 DriveTick _tick({
   Advice? advice,
   List<UpcomingEvent> events = const [],
   int sec = 0,
-}) =>
-    DriveTick(
-      sample: _sample(sec),
-      update: PositionUpdate(
-        routeId: 'r',
-        positionOnRouteMeters: 100,
-        offRoute: false,
-        events: events,
-        advice: advice,
-      ),
-      currentLimitMph: null,
-      offRoute: false,
-    );
+}) => DriveTick(
+  sample: _sample(sec),
+  update: PositionUpdate(
+    routeId: 'r',
+    positionOnRouteMeters: 100,
+    offRoute: false,
+    events: events,
+    advice: advice,
+  ),
+  currentLimitMph: null,
+  offRoute: false,
+);
 
 void main() {
   test('maintain advice is not spoken', () async {
     final voice = FakeVoice();
     final a = VoiceAnnouncer(voice: voice, now: () => t0);
     await a.onTick(
-      _tick(advice: const Advice(action: AdviceAction.maintain, message: 'ok')),
+      _tick(
+        advice: const Advice(action: AdviceAction.maintain, message: 'ok'),
+      ),
       voiceEnabled: true,
       alertDistanceMeters: 200,
     );
@@ -80,10 +81,7 @@ void main() {
     final a = VoiceAnnouncer(voice: voice, now: () => t0);
     await a.onTick(
       _tick(
-        advice: const Advice(
-          action: AdviceAction.easeOff,
-          message: 'Ease off',
-        ),
+        advice: const Advice(action: AdviceAction.easeOff, message: 'Ease off'),
       ),
       voiceEnabled: true,
       alertDistanceMeters: 200,
@@ -95,11 +93,25 @@ void main() {
     final voice = FakeVoice();
     // Advance time beyond 5s gap between ticks
     var sec = 0;
-    final a = VoiceAnnouncer(voice: voice, now: () => t0.add(Duration(seconds: sec)));
-    const adv = Advice(action: AdviceAction.brakeGently, message: 'Brake gently');
-    await a.onTick(_tick(advice: adv), voiceEnabled: true, alertDistanceMeters: 200);
+    final a = VoiceAnnouncer(
+      voice: voice,
+      now: () => t0.add(Duration(seconds: sec)),
+    );
+    const adv = Advice(
+      action: AdviceAction.brakeGently,
+      message: 'Brake gently',
+    );
+    await a.onTick(
+      _tick(advice: adv),
+      voiceEnabled: true,
+      alertDistanceMeters: 200,
+    );
     sec = 10; // well past gap
-    await a.onTick(_tick(advice: adv), voiceEnabled: true, alertDistanceMeters: 200);
+    await a.onTick(
+      _tick(advice: adv),
+      voiceEnabled: true,
+      alertDistanceMeters: 200,
+    );
     // Only spoken once (same key)
     expect(voice.spoken.length, 1);
   });
@@ -107,17 +119,24 @@ void main() {
   test('5-second gap enforced between advice announcements', () async {
     final voice = FakeVoice();
     var sec = 0;
-    final a = VoiceAnnouncer(voice: voice, now: () => t0.add(Duration(seconds: sec)));
+    final a = VoiceAnnouncer(
+      voice: voice,
+      now: () => t0.add(Duration(seconds: sec)),
+    );
     // First advice
     await a.onTick(
-      _tick(advice: const Advice(action: AdviceAction.easeOff, message: 'A')),
+      _tick(
+        advice: const Advice(action: AdviceAction.easeOff, message: 'A'),
+      ),
       voiceEnabled: true,
       alertDistanceMeters: 200,
     );
     sec = 2; // within gap
     // Different advice (key changes) but gap not elapsed
     await a.onTick(
-      _tick(advice: const Advice(action: AdviceAction.brake, message: 'B')),
+      _tick(
+        advice: const Advice(action: AdviceAction.brake, message: 'B'),
+      ),
       voiceEnabled: true,
       alertDistanceMeters: 200,
     );
@@ -125,7 +144,9 @@ void main() {
 
     sec = 6; // past gap
     await a.onTick(
-      _tick(advice: const Advice(action: AdviceAction.maintain, message: 'C')),
+      _tick(
+        advice: const Advice(action: AdviceAction.maintain, message: 'C'),
+      ),
       voiceEnabled: true,
       alertDistanceMeters: 200,
     );
@@ -134,7 +155,9 @@ void main() {
 
     sec = 7;
     await a.onTick(
-      _tick(advice: const Advice(action: AdviceAction.brake, message: 'D')),
+      _tick(
+        advice: const Advice(action: AdviceAction.brake, message: 'D'),
+      ),
       voiceEnabled: true,
       alertDistanceMeters: 200,
     );
@@ -182,7 +205,10 @@ void main() {
   test('event already announced is not re-spoken', () async {
     final voice = FakeVoice();
     var sec = 0;
-    final a = VoiceAnnouncer(voice: voice, now: () => t0.add(Duration(seconds: sec)));
+    final a = VoiceAnnouncer(
+      voice: voice,
+      now: () => t0.add(Duration(seconds: sec)),
+    );
     const event = UpcomingEvent(
       type: EventType.roundabout,
       distanceAheadMeters: 100,
@@ -227,8 +253,7 @@ void main() {
     final a = VoiceAnnouncer(voice: voice, now: () => t0);
     await a.onTick(
       _tick(
-        advice:
-            const Advice(action: AdviceAction.easeOff, message: 'Ease off'),
+        advice: const Advice(action: AdviceAction.easeOff, message: 'Ease off'),
         events: const [
           UpcomingEvent(
             type: EventType.trafficSignal,
@@ -295,18 +320,29 @@ void main() {
   test('reset clears state so events and advice re-trigger', () async {
     final voice = FakeVoice();
     var sec = 0;
-    final a = VoiceAnnouncer(voice: voice, now: () => t0.add(Duration(seconds: sec)));
+    final a = VoiceAnnouncer(
+      voice: voice,
+      now: () => t0.add(Duration(seconds: sec)),
+    );
     const event = UpcomingEvent(
       type: EventType.trafficSignal,
       distanceAheadMeters: 50,
       location: _signalCoord,
     );
-    await a.onTick(_tick(events: [event]), voiceEnabled: true, alertDistanceMeters: 200);
+    await a.onTick(
+      _tick(events: [event]),
+      voiceEnabled: true,
+      alertDistanceMeters: 200,
+    );
     expect(voice.spoken.length, 1);
 
     a.reset();
     sec = 10;
-    await a.onTick(_tick(events: [event]), voiceEnabled: true, alertDistanceMeters: 200);
+    await a.onTick(
+      _tick(events: [event]),
+      voiceEnabled: true,
+      alertDistanceMeters: 200,
+    );
     expect(voice.spoken.length, 2); // same event triggers again after reset
   });
 }

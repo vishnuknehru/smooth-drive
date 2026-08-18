@@ -97,17 +97,36 @@ void main() {
     final t = start;
     final loc = const Coord(lat: 51.0, lon: 0.0);
     final profile = [
-      SpeedPoint(time: t,                             location: loc, speedMps: 15.0),
-      SpeedPoint(time: t.add(const Duration(seconds: 1)), location: loc, speedMps: 11.0), // decel 4 m/s² → harsh
-      SpeedPoint(time: t.add(const Duration(seconds: 2)), location: loc, speedMps:  7.0), // decel 4 m/s² → still harsh
-      SpeedPoint(time: t.add(const Duration(seconds: 3)), location: loc, speedMps:  3.0), // decel 4 m/s² → still harsh
-      SpeedPoint(time: t.add(const Duration(seconds: 4)), location: loc, speedMps:  2.5), // decel 0.5 m/s² → closes event
+      SpeedPoint(time: t, location: loc, speedMps: 15.0),
+      SpeedPoint(
+        time: t.add(const Duration(seconds: 1)),
+        location: loc,
+        speedMps: 11.0,
+      ), // decel 4 m/s² → harsh
+      SpeedPoint(
+        time: t.add(const Duration(seconds: 2)),
+        location: loc,
+        speedMps: 7.0,
+      ), // decel 4 m/s² → still harsh
+      SpeedPoint(
+        time: t.add(const Duration(seconds: 3)),
+        location: loc,
+        speedMps: 3.0,
+      ), // decel 4 m/s² → still harsh
+      SpeedPoint(
+        time: t.add(const Duration(seconds: 4)),
+        location: loc,
+        speedMps: 2.5,
+      ), // decel 0.5 m/s² → closes event
     ];
     final harsh = findHarshDecelerations(profile);
     // All three harsh steps belong to one event.
     expect(harsh, hasLength(1));
     expect(harsh.single.fromMps, closeTo(15.0, 0.01));
-    expect(harsh.single.toMps, closeTo(3.0, 0.01)); // last harsh step's b.speedMps
+    expect(
+      harsh.single.toMps,
+      closeTo(3.0, 0.01),
+    ); // last harsh step's b.speedMps
     expect(harsh.single.peakDecelMs2, closeTo(4.0, 0.01));
   });
 
@@ -117,9 +136,17 @@ void main() {
     final t = start;
     final loc = const Coord(lat: 51.0, lon: 0.0);
     final profile = [
-      SpeedPoint(time: t,                             location: loc, speedMps: 15.0),
-      SpeedPoint(time: t.add(const Duration(seconds: 1)), location: loc, speedMps: 11.0), // harsh
-      SpeedPoint(time: t.add(const Duration(seconds: 2)), location: loc, speedMps:  7.0), // harsh — sequence ends here
+      SpeedPoint(time: t, location: loc, speedMps: 15.0),
+      SpeedPoint(
+        time: t.add(const Duration(seconds: 1)),
+        location: loc,
+        speedMps: 11.0,
+      ), // harsh
+      SpeedPoint(
+        time: t.add(const Duration(seconds: 2)),
+        location: loc,
+        speedMps: 7.0,
+      ), // harsh — sequence ends here
     ];
     final harsh = findHarshDecelerations(profile);
     expect(harsh, hasLength(1));

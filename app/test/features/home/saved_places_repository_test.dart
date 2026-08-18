@@ -7,7 +7,9 @@ import 'package:smoothdrive/features/home/domain/saved_place.dart';
 const _home = SavedPlace(name: 'Home', coord: Coord(lat: 51.5, lon: -0.1));
 const _work = SavedPlace(name: 'Work', coord: Coord(lat: 51.52, lon: -0.08));
 
-Future<SavedPlacesRepository> _repo([Map<String, Object> initial = const {}]) async {
+Future<SavedPlacesRepository> _repo([
+  Map<String, Object> initial = const {},
+]) async {
   SharedPreferences.setMockInitialValues(initial);
   final prefs = await SharedPreferences.getInstance();
   return SavedPlacesRepository(prefs);
@@ -33,7 +35,10 @@ void main() {
     await repo.add(_home);
     await repo.add(_work);
     // Re-add Home with a different coord — should replace.
-    const homeUpdated = SavedPlace(name: 'Home', coord: Coord(lat: 51.6, lon: -0.2));
+    const homeUpdated = SavedPlace(
+      name: 'Home',
+      coord: Coord(lat: 51.6, lon: -0.2),
+    );
     await repo.add(homeUpdated);
     final places = repo.getAll();
     expect(places, hasLength(2));

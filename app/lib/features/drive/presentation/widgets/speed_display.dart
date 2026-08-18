@@ -31,10 +31,9 @@ class SpeedDisplay extends StatelessWidget {
         ),
         Text(
           formatter.speedUnit,
-          style: Theme.of(context)
-              .textTheme
-              .titleMedium
-              ?.copyWith(color: scheme.onSurfaceVariant),
+          style: Theme.of(
+            context,
+          ).textTheme.titleMedium?.copyWith(color: scheme.onSurfaceVariant),
         ),
       ],
     );

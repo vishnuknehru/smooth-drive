@@ -39,37 +39,36 @@ DriveTick tick({
   int? limit,
   bool offRoute = false,
   Failure? failure,
-}) =>
-    DriveTick(
-      sample: GeoSample(
-        time: t0.add(const Duration(minutes: 5)),
-        coord: const Coord(lat: 51.005, lon: 0.0),
-        speedMps: 13.4112, // 30 mph
-        accuracyM: 5,
+}) => DriveTick(
+  sample: GeoSample(
+    time: t0.add(const Duration(minutes: 5)),
+    coord: const Coord(lat: 51.005, lon: 0.0),
+    speedMps: 13.4112, // 30 mph
+    accuracyM: 5,
+  ),
+  update: PositionUpdate(
+    routeId: 'route-one',
+    positionOnRouteMeters: 500,
+    offRoute: offRoute,
+    events: const [
+      UpcomingEvent(
+        type: EventType.speedLimit,
+        distanceAheadMeters: 643.7,
+        location: Coord(lat: 51.01, lon: 0.0),
+        valueMph: 60,
       ),
-      update: PositionUpdate(
-        routeId: 'route-one',
-        positionOnRouteMeters: 500,
-        offRoute: offRoute,
-        events: const [
-          UpcomingEvent(
-            type: EventType.speedLimit,
-            distanceAheadMeters: 643.7,
-            location: Coord(lat: 51.01, lon: 0.0),
-            valueMph: 60,
-          ),
-          UpcomingEvent(
-            type: EventType.trafficSignal,
-            distanceAheadMeters: 1931.2,
-            location: Coord(lat: 51.014, lon: 0.0),
-          ),
-        ],
-        advice: advice,
+      UpcomingEvent(
+        type: EventType.trafficSignal,
+        distanceAheadMeters: 1931.2,
+        location: Coord(lat: 51.014, lon: 0.0),
       ),
-      currentLimitMph: limit,
-      offRoute: offRoute,
-      failure: failure,
-    );
+    ],
+    advice: advice,
+  ),
+  currentLimitMph: limit,
+  offRoute: offRoute,
+  failure: failure,
+);
 
 Future<void> pumpDrive(WidgetTester tester, DriveState state) async {
   SharedPreferences.setMockInitialValues({});
@@ -83,10 +82,7 @@ Future<void> pumpDrive(WidgetTester tester, DriveState state) async {
         sharedPreferencesProvider.overrideWithValue(prefs),
         driveControllerProvider.overrideWith(() => StubDriveController(state)),
       ],
-      child: MaterialApp(
-        theme: AppTheme.light,
-        home: const DriveScreen(),
-      ),
+      child: MaterialApp(theme: AppTheme.light, home: const DriveScreen()),
     ),
   );
 }
@@ -95,8 +91,9 @@ DriveState driving({DriveTick? t}) =>
     DriveState.driving(route: route, startedAt: t0, tick: t);
 
 void main() {
-  testWidgets('shows speed, limit roundel and events while driving',
-      (tester) async {
+  testWidgets('shows speed, limit roundel and events while driving', (
+    tester,
+  ) async {
     await pumpDrive(tester, driving(t: tick(limit: 40)));
     expect(find.text('30'), findsOneWidget); // current speed in mph
     expect(find.text('40'), findsOneWidget); // limit roundel
@@ -128,8 +125,11 @@ void main() {
         ),
       );
       final expected = AdviceColors.light.of(action).bg;
-      expect((container.decoration! as BoxDecoration).color, expected,
-          reason: '$action color');
+      expect(
+        (container.decoration! as BoxDecoration).color,
+        expected,
+        reason: '$action color',
+      );
     }
   });
 
@@ -144,10 +144,7 @@ void main() {
   });
 
   testWidgets('connection-lost strip appears on failure', (tester) async {
-    await pumpDrive(
-      tester,
-      driving(t: tick(failure: const NetworkFailure())),
-    );
+    await pumpDrive(tester, driving(t: tick(failure: const NetworkFailure())));
     expect(find.textContaining('Connection lost'), findsOneWidget);
   });
 
@@ -156,8 +153,9 @@ void main() {
     expect(find.text('Off route'), findsOneWidget);
   });
 
-  testWidgets('progress copy for acquiring and analyzing states',
-      (tester) async {
+  testWidgets('progress copy for acquiring and analyzing states', (
+    tester,
+  ) async {
     await pumpDrive(tester, const DriveState.acquiringGps());
     expect(find.textContaining('GPS fix'), findsOneWidget);
 
@@ -184,29 +182,25 @@ void main() {
   });
 
   testWidgets('error state shows the failure message', (tester) async {
-    await pumpDrive(
-      tester,
-      const DriveState.error(failure: UpstreamFailure()),
-    );
+    await pumpDrive(tester, const DriveState.error(failure: UpstreamFailure()));
     expect(
       find.text('Route service is temporarily unavailable'),
       findsOneWidget,
     );
   });
 
-  testWidgets('network failure shows wifi_off icon and Back to Home button',
-      (tester) async {
-    await pumpDrive(
-      tester,
-      const DriveState.error(failure: NetworkFailure()),
-    );
+  testWidgets('network failure shows wifi_off icon and Back to Home button', (
+    tester,
+  ) async {
+    await pumpDrive(tester, const DriveState.error(failure: NetworkFailure()));
     expect(find.byIcon(Icons.wifi_off_rounded), findsOneWidget);
     expect(find.text('Back to Home'), findsOneWidget);
     expect(find.text('Open Settings'), findsNothing);
   });
 
-  testWidgets('location failure shows location_off icon and Open Settings',
-      (tester) async {
+  testWidgets('location failure shows location_off icon and Open Settings', (
+    tester,
+  ) async {
     await pumpDrive(
       tester,
       const DriveState.error(
@@ -220,14 +214,16 @@ void main() {
     expect(find.text('Back to Home'), findsOneWidget);
   });
 
-  testWidgets('GPS staleness banner absent when drive just started (no ticks yet)',
-      (tester) async {
-    // Before any tick arrives _lastTickAt is null → banner must not show.
-    // The banner only appears once a tick has been received AND 10s have
-    // elapsed since then; that boundary is exercised in the integration test.
-    await pumpDrive(tester, driving());
-    expect(find.text('GPS signal lost'), findsNothing);
-  });
+  testWidgets(
+    'GPS staleness banner absent when drive just started (no ticks yet)',
+    (tester) async {
+      // Before any tick arrives _lastTickAt is null → banner must not show.
+      // The banner only appears once a tick has been received AND 10s have
+      // elapsed since then; that boundary is exercised in the integration test.
+      await pumpDrive(tester, driving());
+      expect(find.text('GPS signal lost'), findsNothing);
+    },
+  );
 
   testWidgets('saving state shows progress indicator', (tester) async {
     await pumpDrive(tester, const DriveState.saving());
@@ -236,40 +232,36 @@ void main() {
   });
 
   testWidgets('upstream failure shows cloud_off icon', (tester) async {
-    await pumpDrive(
-      tester,
-      const DriveState.error(failure: UpstreamFailure()),
-    );
+    await pumpDrive(tester, const DriveState.error(failure: UpstreamFailure()));
     expect(find.byIcon(Icons.cloud_off_outlined), findsOneWidget);
   });
 
   testWidgets('unknown failure shows generic error icon', (tester) async {
-    await pumpDrive(
-      tester,
-      const DriveState.error(failure: UnknownFailure()),
-    );
+    await pumpDrive(tester, const DriveState.error(failure: UnknownFailure()));
     expect(find.byIcon(Icons.error_outline), findsOneWidget);
   });
 
-  testWidgets('upcoming events list shows "Road change" for unknown event type',
-      (tester) async {
-    await pumpDrive(
-      tester,
-      driving(
-        t: tick().copyWith(
-          update: tick().update?.copyWith(
-            events: const [
-              UpcomingEvent(
-                type: EventType.unknown,
-                distanceAheadMeters: 200,
-                location: Coord(lat: 51.05, lon: 0.0),
-              ),
-            ],
+  testWidgets(
+    'upcoming events list shows "Road change" for unknown event type',
+    (tester) async {
+      await pumpDrive(
+        tester,
+        driving(
+          t: tick().copyWith(
+            update: tick().update?.copyWith(
+              events: const [
+                UpcomingEvent(
+                  type: EventType.unknown,
+                  distanceAheadMeters: 200,
+                  location: Coord(lat: 51.05, lon: 0.0),
+                ),
+              ],
+            ),
           ),
         ),
-      ),
-    );
-    expect(find.text('Road change'), findsOneWidget);
-    expect(find.byIcon(Icons.info_outline), findsOneWidget);
-  });
+      );
+      expect(find.text('Road change'), findsOneWidget);
+      expect(find.byIcon(Icons.info_outline), findsOneWidget);
+    },
+  );
 }

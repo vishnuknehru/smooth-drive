@@ -29,26 +29,29 @@ class _FakeJourneyRepo implements JourneyRepository {
   Future<void> save(Journey j) async {}
 
   @override
-  Future<Journey?> load(String id) async =>
-      _journeys.firstWhere((j) => j.id == id, orElse: () => throw StateError('not found'));
+  Future<Journey?> load(String id) async => _journeys.firstWhere(
+    (j) => j.id == id,
+    orElse: () => throw StateError('not found'),
+  );
 
   @override
-  Future<List<Journey>> recent({int limit = 10}) async => _journeys.take(limit).toList();
+  Future<List<Journey>> recent({int limit = 10}) async =>
+      _journeys.take(limit).toList();
 }
 
 Journey _journey({String id = 'j1', int score = 80}) => Journey(
-      id: id,
-      startedAt: _t0,
-      endedAt: _t0.add(const Duration(minutes: 10)),
-      start: const Coord(lat: 51.0, lon: 0.0),
-      end: const Coord(lat: 51.02, lon: 0.0),
-      distanceMeters: 3000,
-      durationSeconds: 600,
-      harshEvents: const [],
-      lateReactions: 0,
-      score: score,
-      samples: const [],
-    );
+  id: id,
+  startedAt: _t0,
+  endedAt: _t0.add(const Duration(minutes: 10)),
+  start: const Coord(lat: 51.0, lon: 0.0),
+  end: const Coord(lat: 51.02, lon: 0.0),
+  distanceMeters: 3000,
+  durationSeconds: 600,
+  harshEvents: const [],
+  lateReactions: 0,
+  score: score,
+  samples: const [],
+);
 
 Future<void> pumpHome(
   WidgetTester tester, {
@@ -77,7 +80,9 @@ Future<void> pumpHome(
         theme: AppTheme.light,
         // Minimal router so context.push works in the widget under test.
         home: const HomeScreen(),
-        routes: {Routes.settings: (_) => const Scaffold(body: Text('Settings'))},
+        routes: {
+          Routes.settings: (_) => const Scaffold(body: Text('Settings')),
+        },
       ),
     ),
   );
@@ -101,14 +106,16 @@ void main() {
     expect(find.text('Start Drive'), findsOneWidget);
   });
 
-  testWidgets('shows "No journeys yet" when recent list is empty',
-      (tester) async {
+  testWidgets('shows "No journeys yet" when recent list is empty', (
+    tester,
+  ) async {
     await pumpHome(tester, journeys: []);
     expect(find.text('No journeys yet'), findsOneWidget);
   });
 
-  testWidgets('recent journey tile shows score, distance, duration',
-      (tester) async {
+  testWidgets('recent journey tile shows score, distance, duration', (
+    tester,
+  ) async {
     await pumpHome(tester, journeys: [_journey(score: 85)]);
     expect(find.text('85'), findsOneWidget); // CircleAvatar score
     // 3000m ≈ 1.9 mi imperial
@@ -116,10 +123,10 @@ void main() {
     expect(find.textContaining('10m'), findsOneWidget);
   });
 
-  testWidgets('error loading recent journeys shows fallback message',
-      (tester) async {
+  testWidgets('error loading recent journeys shows fallback message', (
+    tester,
+  ) async {
     await pumpHome(tester, repoError: true);
     expect(find.textContaining('Could not load'), findsOneWidget);
   });
-
 }

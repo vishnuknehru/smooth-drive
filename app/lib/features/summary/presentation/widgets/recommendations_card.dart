@@ -43,9 +43,9 @@ class RecommendationsCard extends StatelessWidget {
           children: [
             Text(
               'Recommendations',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 12),
             if (recs.isEmpty)
@@ -63,8 +63,11 @@ class RecommendationsCard extends StatelessWidget {
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(Icons.lightbulb_outline,
-                        color: scheme.secondary, size: 20),
+                    Icon(
+                      Icons.lightbulb_outline,
+                      color: scheme.secondary,
+                      size: 20,
+                    ),
                     const SizedBox(width: 8),
                     Expanded(child: Text(rec)),
                   ],

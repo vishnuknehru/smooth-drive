@@ -187,14 +187,8 @@ void main() {
   });
 
   test('Failure.toString includes runtimeType and message', () {
-    expect(
-      NetworkFailure().toString(),
-      contains('NetworkFailure'),
-    );
-    expect(
-      UnknownFailure().toString(),
-      contains('UnknownFailure'),
-    );
+    expect(NetworkFailure().toString(), contains('NetworkFailure'));
+    expect(UnknownFailure().toString(), contains('UnknownFailure'));
   });
 
   test('healthCheck true on ok, false on network error', () async {

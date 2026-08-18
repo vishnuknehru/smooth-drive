@@ -22,8 +22,7 @@ class SavedPlacesRepository {
   List<SavedPlace> getAll() {
     final raw = _prefs.getStringList(_kSavedPlaces) ?? [];
     return raw
-        .map((s) =>
-            SavedPlace.fromJson(jsonDecode(s) as Map<String, dynamic>))
+        .map((s) => SavedPlace.fromJson(jsonDecode(s) as Map<String, dynamic>))
         .toList();
   }
 

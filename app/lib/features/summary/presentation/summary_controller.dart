@@ -7,8 +7,7 @@ part 'summary_controller.g.dart';
 
 @riverpod
 Future<Journey> summaryJourney(Ref ref, String journeyId) async {
-  final journey =
-      await ref.watch(journeyRepositoryProvider).load(journeyId);
+  final journey = await ref.watch(journeyRepositoryProvider).load(journeyId);
   if (journey == null) throw StateError('Journey $journeyId not found');
   return journey;
 }

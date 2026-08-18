@@ -67,9 +67,9 @@ class _DestinationSheetState extends ConsumerState<DestinationSheet> {
         .read(savedPlacesRepositoryProvider)
         .add(SavedPlace(name: label, coord: coord));
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Saved as "$label"')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Saved as "$label"')));
       setState(() {}); // refresh saved places list
     }
   }
@@ -112,8 +112,10 @@ class _DestinationSheetState extends ConsumerState<DestinationSheet> {
           // Manual lat/lon entry
           TextField(
             controller: _controller,
-            keyboardType:
-                const TextInputType.numberWithOptions(decimal: true, signed: true),
+            keyboardType: const TextInputType.numberWithOptions(
+              decimal: true,
+              signed: true,
+            ),
             decoration: InputDecoration(
               labelText: 'Lat, Lon',
               hintText: '51.5074, -0.1278',
@@ -141,9 +143,9 @@ class _DestinationSheetState extends ConsumerState<DestinationSheet> {
             const Divider(height: 24),
             Text(
               'Saved places',
-              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    color: scheme.onSurfaceVariant,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleSmall?.copyWith(color: scheme.onSurfaceVariant),
             ),
             const SizedBox(height: 4),
             ConstrainedBox(

@@ -52,7 +52,10 @@ void main() {
   test('recent returns journeys sorted newest first', () async {
     final repo = _repo(tmp);
     final older = _makeJourney('j1', startedAt: t0);
-    final newer = _makeJourney('j2', startedAt: t0.add(const Duration(hours: 1)));
+    final newer = _makeJourney(
+      'j2',
+      startedAt: t0.add(const Duration(hours: 1)),
+    );
 
     await repo.save(older);
     await repo.save(newer);

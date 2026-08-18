@@ -15,9 +15,9 @@ class DebugRow extends StatelessWidget {
     final text = t == null
         ? 'waiting for GPS…'
         : '${t.sample.coord.lat.toStringAsFixed(5)}, '
-            '${t.sample.coord.lon.toStringAsFixed(5)} · '
-            '${t.sample.speedMps.toStringAsFixed(1)} m/s · '
-            '${t.update == null ? 'no fix on route' : '${t.update!.positionOnRouteMeters.round()} m on route'}';
+              '${t.sample.coord.lon.toStringAsFixed(5)} · '
+              '${t.sample.speedMps.toStringAsFixed(1)} m/s · '
+              '${t.update == null ? 'no fix on route' : '${t.update!.positionOnRouteMeters.round()} m on route'}';
     return Text(
       text,
       style: TextStyle(

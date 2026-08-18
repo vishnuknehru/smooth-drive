@@ -19,8 +19,7 @@ class FileJourneyRepository implements JourneyRepository {
   final Directory? overrideDir;
 
   Future<Directory> _dir() async {
-    final base =
-        overrideDir ?? await getApplicationDocumentsDirectory();
+    final base = overrideDir ?? await getApplicationDocumentsDirectory();
     final dir = Directory('${base.path}/journeys');
     if (!dir.existsSync()) dir.createSync(recursive: true);
     return dir;

@@ -18,8 +18,7 @@ class _FakeJourneyRepo implements JourneyRepository {
   final Map<String, Journey> _journeys;
 
   @override
-  Future<void> save(Journey journey) async =>
-      _journeys[journey.id] = journey;
+  Future<void> save(Journey journey) async => _journeys[journey.id] = journey;
 
   @override
   Future<Journey?> load(String id) async => _journeys[id];
@@ -34,54 +33,53 @@ Journey _journey({
   int harshEvents = 2,
   int lateReactions = 1,
   double? compliance = 0.85,
-}) =>
-    Journey(
-      id: 'test-journey',
-      startedAt: t0,
-      endedAt: t0.add(const Duration(minutes: 12)),
-      start: const Coord(lat: 51.0, lon: 0.0),
-      end: const Coord(lat: 51.02, lon: 0.0),
-      distanceMeters: 5000,
-      durationSeconds: 720,
-      harshEvents: List.generate(
-        harshEvents,
-        (i) => HarshEvent(
-          time: t0.add(Duration(minutes: i)),
-          location: const Coord(lat: 51.01, lon: 0.0),
-          fromMps: 15,
-          toMps: 0,
-          peakDecelMs2: 4.5,
-        ),
-      ),
-      lateReactions: lateReactions,
-      score: score,
-      speedComplianceRatio: compliance,
-      samples: const [],
-    );
+}) => Journey(
+  id: 'test-journey',
+  startedAt: t0,
+  endedAt: t0.add(const Duration(minutes: 12)),
+  start: const Coord(lat: 51.0, lon: 0.0),
+  end: const Coord(lat: 51.02, lon: 0.0),
+  distanceMeters: 5000,
+  durationSeconds: 720,
+  harshEvents: List.generate(
+    harshEvents,
+    (i) => HarshEvent(
+      time: t0.add(Duration(minutes: i)),
+      location: const Coord(lat: 51.01, lon: 0.0),
+      fromMps: 15,
+      toMps: 0,
+      peakDecelMs2: 4.5,
+    ),
+  ),
+  lateReactions: lateReactions,
+  score: score,
+  speedComplianceRatio: compliance,
+  samples: const [],
+);
 
 // Journey with speed samples so SpeedChart renders its data path.
 Journey _journeyWithSamples() => Journey(
-      id: 'test-journey',
-      startedAt: t0,
-      endedAt: t0.add(const Duration(minutes: 5)),
-      start: const Coord(lat: 51.0, lon: 0.0),
-      end: const Coord(lat: 51.02, lon: 0.0),
-      distanceMeters: 2000,
-      durationSeconds: 300,
-      harshEvents: const [],
-      lateReactions: 0,
-      score: 90,
-      speedComplianceRatio: 1.0,
-      samples: List.generate(
-        10,
-        (i) => JourneySample(
-          time: t0.add(Duration(seconds: i * 30)),
-          coord: Coord(lat: 51.0 + i * 0.001, lon: 0.0),
-          speedMps: 13.4 + i * 0.1,
-          limitMph: 30,
-        ),
-      ),
-    );
+  id: 'test-journey',
+  startedAt: t0,
+  endedAt: t0.add(const Duration(minutes: 5)),
+  start: const Coord(lat: 51.0, lon: 0.0),
+  end: const Coord(lat: 51.02, lon: 0.0),
+  distanceMeters: 2000,
+  durationSeconds: 300,
+  harshEvents: const [],
+  lateReactions: 0,
+  score: 90,
+  speedComplianceRatio: 1.0,
+  samples: List.generate(
+    10,
+    (i) => JourneySample(
+      time: t0.add(Duration(seconds: i * 30)),
+      coord: Coord(lat: 51.0 + i * 0.001, lon: 0.0),
+      speedMps: 13.4 + i * 0.1,
+      limitMph: 30,
+    ),
+  ),
+);
 
 Future<void> pumpSummary(
   WidgetTester tester, {
@@ -94,8 +92,9 @@ Future<void> pumpSummary(
       key: UniqueKey(),
       overrides: [
         sharedPreferencesProvider.overrideWithValue(prefs),
-        journeyRepositoryProvider
-            .overrideWithValue(_FakeJourneyRepo({'test-journey': journey})),
+        journeyRepositoryProvider.overrideWithValue(
+          _FakeJourneyRepo({'test-journey': journey}),
+        ),
       ],
       child: MaterialApp(
         theme: AppTheme.light,
@@ -116,8 +115,9 @@ void main() {
     expect(find.textContaining('12m'), findsOneWidget);
   });
 
-  testWidgets('shows harsh braking recommendation when events > 0',
-      (tester) async {
+  testWidgets('shows harsh braking recommendation when events > 0', (
+    tester,
+  ) async {
     await pumpSummary(tester, journey: _journey(harshEvents: 3));
     expect(find.textContaining('harshly 3 times'), findsOneWidget);
   });
@@ -130,11 +130,7 @@ void main() {
   testWidgets('shows positive message when no issues', (tester) async {
     await pumpSummary(
       tester,
-      journey: _journey(
-        harshEvents: 0,
-        lateReactions: 0,
-        compliance: 1.0,
-      ),
+      journey: _journey(harshEvents: 0, lateReactions: 0, compliance: 1.0),
     );
     expect(find.textContaining('Great drive'), findsOneWidget);
   });
@@ -142,11 +138,7 @@ void main() {
   testWidgets('shows speed compliance warning when low', (tester) async {
     await pumpSummary(
       tester,
-      journey: _journey(
-        harshEvents: 0,
-        lateReactions: 0,
-        compliance: 0.7,
-      ),
+      journey: _journey(harshEvents: 0, lateReactions: 0, compliance: 0.7),
     );
     expect(find.textContaining('30%'), findsOneWidget);
   });
@@ -161,8 +153,9 @@ void main() {
     expect(find.textContaining('No speed data'), findsNothing);
   });
 
-  testWidgets('error branch shows fallback message when journey missing',
-      (tester) async {
+  testWidgets('error branch shows fallback message when journey missing', (
+    tester,
+  ) async {
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
     await tester.pumpWidget(
@@ -171,8 +164,7 @@ void main() {
         overrides: [
           sharedPreferencesProvider.overrideWithValue(prefs),
           // Empty repo — load('missing-id') returns null → summaryJourney throws
-          journeyRepositoryProvider
-              .overrideWithValue(_FakeJourneyRepo({})),
+          journeyRepositoryProvider.overrideWithValue(_FakeJourneyRepo({})),
         ],
         child: MaterialApp(
           theme: AppTheme.light,

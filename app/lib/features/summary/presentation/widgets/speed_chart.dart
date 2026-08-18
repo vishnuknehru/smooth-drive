@@ -36,11 +36,13 @@ class SpeedChart extends StatelessWidget {
       }
     }
 
-    final maxY = [
-      ...speedSpots.map((s) => s.y),
-      ...limitSpots.map((s) => s.y),
-      10.0,
-    ].reduce((a, b) => a > b ? a : b) * 1.1;
+    final maxY =
+        [
+          ...speedSpots.map((s) => s.y),
+          ...limitSpots.map((s) => s.y),
+          10.0,
+        ].reduce((a, b) => a > b ? a : b) *
+        1.1;
 
     final xMax = speedSpots.last.x;
 
@@ -55,10 +57,8 @@ class SpeedChart extends StatelessWidget {
           gridData: FlGridData(
             show: true,
             drawVerticalLine: false,
-            getDrawingHorizontalLine: (_) => FlLine(
-              color: scheme.outlineVariant,
-              strokeWidth: 1,
-            ),
+            getDrawingHorizontalLine: (_) =>
+                FlLine(color: scheme.outlineVariant, strokeWidth: 1),
           ),
           borderData: FlBorderData(show: false),
           titlesData: FlTitlesData(
@@ -91,10 +91,12 @@ class SpeedChart extends StatelessWidget {
                 },
               ),
             ),
-            rightTitles:
-                const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-            topTitles:
-                const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            rightTitles: const AxisTitles(
+              sideTitles: SideTitles(showTitles: false),
+            ),
+            topTitles: const AxisTitles(
+              sideTitles: SideTitles(showTitles: false),
+            ),
           ),
           lineBarsData: [
             // Actual speed

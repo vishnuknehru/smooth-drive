@@ -45,12 +45,9 @@ class _DriveScreenState extends ConsumerState<DriveScreen> {
     super.initState();
     unawaited(WakelockPlus.enable().catchError((_) {}));
     // Periodic refresh so the GPS-staleness check updates even when ticks stop.
-    _refreshTimer = Timer.periodic(
-      const Duration(seconds: 5),
-      (_) {
-        if (mounted) setState(() {});
-      },
-    );
+    _refreshTimer = Timer.periodic(const Duration(seconds: 5), (_) {
+      if (mounted) setState(() {});
+    });
   }
 
   @override
@@ -78,43 +75,44 @@ class _DriveScreenState extends ConsumerState<DriveScreen> {
       body: SafeArea(
         child: switch (state) {
           DriveAcquiringGps() => const _Progress('Getting a GPS fix…'),
-          DriveAnalyzing() =>
-            const _Progress('Analyzing your route…\nThis can take a moment'),
+          DriveAnalyzing() => const _Progress(
+            'Analyzing your route…\nThis can take a moment',
+          ),
           DriveSaving() => const _Progress('Saving your journey…'),
           DriveDriving(:final tick, :final startedAt) => _DrivingView(
-              tick: tick,
-              startedAt: startedAt,
-              formatter: formatter,
-              showDebug: _showDebug,
-              lastTickAt: _lastTickAt,
-              now: DateTime.now(),
-              onToggleDebug: () => setState(() => _showDebug = !_showDebug),
-              onEnd: () async {
-                final controller = ref.read(driveControllerProvider.notifier);
-                await controller.endDrive();
-              },
-            ),
+            tick: tick,
+            startedAt: startedAt,
+            formatter: formatter,
+            showDebug: _showDebug,
+            lastTickAt: _lastTickAt,
+            now: DateTime.now(),
+            onToggleDebug: () => setState(() => _showDebug = !_showDebug),
+            onEnd: () async {
+              final controller = ref.read(driveControllerProvider.notifier);
+              await controller.endDrive();
+            },
+          ),
           DriveDone(:final journey) => _DoneView(
-              score: journey.score,
-              onViewSummary: () {
-                ref.read(driveControllerProvider.notifier).reset();
-                context.go(Routes.summary(journey.id));
-              },
-              onClose: () {
-                ref.read(driveControllerProvider.notifier).reset();
-                context.go(Routes.home);
-              },
-            ),
+            score: journey.score,
+            onViewSummary: () {
+              ref.read(driveControllerProvider.notifier).reset();
+              context.go(Routes.summary(journey.id));
+            },
+            onClose: () {
+              ref.read(driveControllerProvider.notifier).reset();
+              context.go(Routes.home);
+            },
+          ),
           DriveError(:final failure) => _ErrorView(
-              failure: failure,
-              onOpenSettings: failure is LocationFailure
-                  ? () => unawaited(Geolocator.openAppSettings())
-                  : null,
-              onClose: () {
-                ref.read(driveControllerProvider.notifier).reset();
-                context.go(Routes.home);
-              },
-            ),
+            failure: failure,
+            onOpenSettings: failure is LocationFailure
+                ? () => unawaited(Geolocator.openAppSettings())
+                : null,
+            onClose: () {
+              ref.read(driveControllerProvider.notifier).reset();
+              context.go(Routes.home);
+            },
+          ),
           _ => const SizedBox.shrink(), // idle: router redirects home
         },
       ),
@@ -144,14 +142,14 @@ class _DrivingView extends StatelessWidget {
   final Future<void> Function() onEnd;
 
   bool get _isGpsStale =>
-      lastTickAt != null &&
-      now.difference(lastTickAt!) >= _gpsStaleThreshold;
+      lastTickAt != null && now.difference(lastTickAt!) >= _gpsStaleThreshold;
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final elapsed =
-        tick == null ? Duration.zero : tick!.sample.time.difference(startedAt);
+    final elapsed = tick == null
+        ? Duration.zero
+        : tick!.sample.time.difference(startedAt);
     return GestureDetector(
       onLongPress: onToggleDebug,
       behavior: HitTestBehavior.opaque,
@@ -166,7 +164,10 @@ class _DrivingView extends StatelessWidget {
                 TextButton.icon(
                   onPressed: onEnd,
                   icon: const Icon(Icons.stop_circle_outlined),
-                  label: const Text('End Drive', style: TextStyle(fontSize: 18)),
+                  label: const Text(
+                    'End Drive',
+                    style: TextStyle(fontSize: 18),
+                  ),
                   style: TextButton.styleFrom(foregroundColor: scheme.error),
                 ),
                 Text(
@@ -252,7 +253,9 @@ class _StatusStrip extends StatelessWidget {
         children: [
           Icon(icon, color: onColor, size: 20),
           const SizedBox(width: 8),
-          Expanded(child: Text(text, style: TextStyle(color: onColor))),
+          Expanded(
+            child: Text(text, style: TextStyle(color: onColor)),
+          ),
         ],
       ),
     );
@@ -338,11 +341,11 @@ class _ErrorView extends StatelessWidget {
   final VoidCallback? onOpenSettings;
 
   IconData get _icon => switch (failure) {
-        NetworkFailure() => Icons.wifi_off_rounded,
-        UpstreamFailure() => Icons.cloud_off_outlined,
-        LocationFailure() => Icons.location_off,
-        _ => Icons.error_outline,
-      };
+    NetworkFailure() => Icons.wifi_off_rounded,
+    UpstreamFailure() => Icons.cloud_off_outlined,
+    LocationFailure() => Icons.location_off,
+    _ => Icons.error_outline,
+  };
 
   @override
   Widget build(BuildContext context) {
@@ -361,10 +364,7 @@ class _ErrorView extends StatelessWidget {
           ),
           const SizedBox(height: 32),
           if (onOpenSettings != null) ...[
-            BigActionButton(
-              label: 'Open Settings',
-              onPressed: onOpenSettings!,
-            ),
+            BigActionButton(label: 'Open Settings', onPressed: onOpenSettings!),
             const SizedBox(height: 12),
             TextButton(onPressed: onClose, child: const Text('Back to Home')),
           ] else

@@ -72,13 +72,14 @@ class VoiceAnnouncer {
   }
 
   String _eventText(UpcomingEvent event) => switch (event.type) {
-        EventType.speedLimit => event.valueMph != null
-            ? 'Speed limit changing to ${event.valueMph} miles per hour'
-            : 'Speed limit change ahead',
-        EventType.trafficSignal => 'Traffic signal ahead',
-        EventType.roundabout => 'Roundabout ahead',
-        EventType.unknown => 'Hazard ahead',
-      };
+    EventType.speedLimit =>
+      event.valueMph != null
+          ? 'Speed limit changing to ${event.valueMph} miles per hour'
+          : 'Speed limit change ahead',
+    EventType.trafficSignal => 'Traffic signal ahead',
+    EventType.roundabout => 'Roundabout ahead',
+    EventType.unknown => 'Hazard ahead',
+  };
 
   void reset() {
     _lastAdviceKey = null;

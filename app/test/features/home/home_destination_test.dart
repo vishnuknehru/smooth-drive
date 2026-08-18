@@ -33,9 +33,7 @@ Future<ProviderScope> _pumpSheet(
     ],
     child: MaterialApp(
       theme: AppTheme.light,
-      home: Scaffold(
-        body: DestinationSheet(onDestinationSelected: onSelected),
-      ),
+      home: Scaffold(body: DestinationSheet(onDestinationSelected: onSelected)),
     ),
   );
   await tester.pumpWidget(scope);
@@ -56,8 +54,9 @@ void main() {
     expect(selected!.lon, closeTo(-0.1278, 0.0001));
   });
 
-  testWidgets('invalid input shows error, does not close sheet',
-      (tester) async {
+  testWidgets('invalid input shows error, does not close sheet', (
+    tester,
+  ) async {
     Coord? selected;
     await _pumpSheet(tester, onSelected: (c) => selected = c);
 
@@ -71,9 +70,7 @@ void main() {
 
   testWidgets('saved place tile calls onDestinationSelected', (tester) async {
     SharedPreferences.setMockInitialValues({
-      'saved_places': [
-        '{"name":"Home","lat":51.5,"lon":-0.1}',
-      ],
+      'saved_places': ['{"name":"Home","lat":51.5,"lon":-0.1}'],
     });
     final prefs = await SharedPreferences.getInstance();
     Coord? selected;
@@ -101,7 +98,9 @@ void main() {
     expect(selected!.lat, closeTo(51.5, 0.0001));
   });
 
-  testWidgets('keyboard submit on text field triggers navigation', (tester) async {
+  testWidgets('keyboard submit on text field triggers navigation', (
+    tester,
+  ) async {
     Coord? selected;
     await _pumpSheet(tester, onSelected: (c) => selected = c);
 
@@ -113,8 +112,9 @@ void main() {
     expect(selected!.lat, closeTo(51.5074, 0.0001));
   });
 
-  testWidgets('"Save this location" saves typed coord and shows snackbar',
-      (tester) async {
+  testWidgets('"Save this location" saves typed coord and shows snackbar', (
+    tester,
+  ) async {
     await _pumpSheet(tester, onSelected: (_) {});
 
     // Type a valid coord first so the save logic has something to save.
@@ -128,8 +128,9 @@ void main() {
     expect(find.textContaining('Saved as'), findsOneWidget);
   });
 
-  testWidgets('"Save this location" without a coord shows error snackbar',
-      (tester) async {
+  testWidgets('"Save this location" without a coord shows error snackbar', (
+    tester,
+  ) async {
     await _pumpSheet(tester, onSelected: (_) {});
 
     // Don't enter any text — field is empty.
@@ -142,9 +143,7 @@ void main() {
 
   testWidgets('delete button removes a saved place', (tester) async {
     SharedPreferences.setMockInitialValues({
-      'saved_places': [
-        '{"name":"Gym","lat":51.3,"lon":-0.15}',
-      ],
+      'saved_places': ['{"name":"Gym","lat":51.3,"lon":-0.15}'],
     });
     final prefs = await SharedPreferences.getInstance();
     await tester.pumpWidget(
@@ -156,9 +155,7 @@ void main() {
         ],
         child: MaterialApp(
           theme: AppTheme.light,
-          home: Scaffold(
-            body: DestinationSheet(onDestinationSelected: (_) {}),
-          ),
+          home: Scaffold(body: DestinationSheet(onDestinationSelected: (_) {})),
         ),
       ),
     );

@@ -73,11 +73,13 @@ class DriveController extends _$DriveController {
           final settings = ref.read(settingsControllerProvider);
           final announcer = _announcer;
           if (announcer != null) {
-            unawaited(announcer.onTick(
-              tick,
-              voiceEnabled: settings.voiceEnabled,
-              alertDistanceMeters: settings.alertDistanceMeters,
-            ));
+            unawaited(
+              announcer.onTick(
+                tick,
+                voiceEnabled: settings.voiceEnabled,
+                alertDistanceMeters: settings.alertDistanceMeters,
+              ),
+            );
           }
         }
       });

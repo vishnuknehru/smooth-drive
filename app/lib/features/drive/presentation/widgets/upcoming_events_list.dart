@@ -26,10 +26,9 @@ class UpcomingEventsList extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         child: Text(
           'No events ahead on this route',
-          style: Theme.of(context)
-              .textTheme
-              .titleMedium
-              ?.copyWith(color: scheme.onSurfaceVariant),
+          style: Theme.of(
+            context,
+          ).textTheme.titleMedium?.copyWith(color: scheme.onSurfaceVariant),
         ),
       );
     }
@@ -53,7 +52,10 @@ class UpcomingEventsList extends StatelessWidget {
                 ),
                 Text(
                   'in ${formatter.formatDistance(event.distanceAheadMeters)}',
-                  style: TextStyle(fontSize: 20, color: scheme.onSurfaceVariant),
+                  style: TextStyle(
+                    fontSize: 20,
+                    color: scheme.onSurfaceVariant,
+                  ),
                 ),
               ],
             ),
@@ -63,13 +65,14 @@ class UpcomingEventsList extends StatelessWidget {
   }
 
   String _label(UpcomingEvent event) => switch (event.type) {
-        EventType.speedLimit => event.valueMph == null
-            ? 'Speed limit change'
-            : formatter.formatLimit(event.valueMph!),
-        EventType.trafficSignal => 'Traffic signal',
-        EventType.roundabout => 'Roundabout',
-        EventType.unknown => 'Road change',
-      };
+    EventType.speedLimit =>
+      event.valueMph == null
+          ? 'Speed limit change'
+          : formatter.formatLimit(event.valueMph!),
+    EventType.trafficSignal => 'Traffic signal',
+    EventType.roundabout => 'Roundabout',
+    EventType.unknown => 'Road change',
+  };
 }
 
 class _EventIcon extends StatelessWidget {

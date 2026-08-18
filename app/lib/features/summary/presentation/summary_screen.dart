@@ -24,10 +24,7 @@ class SummaryScreen extends ConsumerWidget {
       body: asyncJourney.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('Could not load journey: $e')),
-        data: (journey) => _SummaryBody(
-          journey: journey,
-          formatter: formatter,
-        ),
+        data: (journey) => _SummaryBody(journey: journey, formatter: formatter),
       ),
     );
   }
@@ -50,17 +47,14 @@ class _SummaryBody extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           // Score gauge
-          Center(
-            child: ScoreGauge(score: journey.score),
-          ),
+          Center(child: ScoreGauge(score: journey.score)),
           const SizedBox(height: 8),
           Text(
             'Smoothness score',
             textAlign: TextAlign.center,
-            style: Theme.of(context)
-                .textTheme
-                .titleSmall
-                ?.copyWith(color: scheme.onSurfaceVariant),
+            style: Theme.of(
+              context,
+            ).textTheme.titleSmall?.copyWith(color: scheme.onSurfaceVariant),
           ),
           const SizedBox(height: 24),
 
@@ -82,8 +76,7 @@ class _SummaryBody extends StatelessWidget {
               if (journey.speedComplianceRatio != null)
                 _Stat(
                   label: 'Speed compliance',
-                  value:
-                      '${(journey.speedComplianceRatio! * 100).round()}%',
+                  value: '${(journey.speedComplianceRatio! * 100).round()}%',
                 ),
             ],
           ),
@@ -92,9 +85,9 @@ class _SummaryBody extends StatelessWidget {
           // Speed profile chart
           Text(
             'Speed profile  (${formatter.speedUnit})',
-            style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  color: scheme.onSurfaceVariant,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleSmall?.copyWith(color: scheme.onSurfaceVariant),
           ),
           const SizedBox(height: 8),
           SpeedChart(journey: journey, formatter: formatter),
@@ -126,16 +119,15 @@ class _StatsRow extends StatelessWidget {
                   Text(
                     s.value,
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
+                      fontWeight: FontWeight.w700,
+                    ),
                     textAlign: TextAlign.center,
                   ),
                   Text(
                     s.label,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color:
-                              Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
                     textAlign: TextAlign.center,
                   ),
                 ],

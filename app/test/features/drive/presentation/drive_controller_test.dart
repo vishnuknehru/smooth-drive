@@ -32,11 +32,11 @@ const route = RouteAnalysis(
 );
 
 GeoSample sampleAt(int second) => GeoSample(
-      time: t0.add(Duration(seconds: second)),
-      coord: const Coord(lat: 51.0, lon: 0.0),
-      speedMps: 15,
-      accuracyM: 5,
-    );
+  time: t0.add(Duration(seconds: second)),
+  coord: const Coord(lat: 51.0, lon: 0.0),
+  speedMps: 15,
+  accuracyM: 5,
+);
 
 class FakeLocation implements LocationService {
   FakeLocation({this.permission = LocationPermissionStatus.granted});
@@ -86,8 +86,9 @@ class FakeRepo implements RouteRepository {
   FakeRepo({this.analyzeFailure});
 
   final Failure? analyzeFailure;
-  final refreshController =
-      StreamController<RouteAnalysis>.broadcast(sync: true);
+  final refreshController = StreamController<RouteAnalysis>.broadcast(
+    sync: true,
+  );
 
   @override
   Stream<RouteAnalysis> get routeRefreshed => refreshController.stream;
@@ -106,13 +107,12 @@ class FakeRepo implements RouteRepository {
     required String routeId,
     required Coord position,
     double? speedMps,
-  }) async =>
-      PositionUpdate(
-        routeId: routeId,
-        positionOnRouteMeters: 100,
-        offRoute: false,
-        events: const [],
-      );
+  }) async => PositionUpdate(
+    routeId: routeId,
+    positionOnRouteMeters: 100,
+    offRoute: false,
+    events: const [],
+  );
 
   @override
   Future<bool> healthCheck() async => true;
@@ -127,7 +127,9 @@ ProviderContainer makeContainer({
     overrides: [
       locationServiceProvider.overrideWithValue(location),
       routeRepositoryProvider.overrideWithValue(repo),
-      journeyRepositoryProvider.overrideWithValue(journeyRepo ?? FakeJourneyRepo()),
+      journeyRepositoryProvider.overrideWithValue(
+        journeyRepo ?? FakeJourneyRepo(),
+      ),
       voiceServiceProvider.overrideWithValue(FakeVoiceSvc()),
       settingsControllerProvider.overrideWith(() => _FakeSettings()),
       clockProvider.overrideWithValue(() => t0),
@@ -140,8 +142,7 @@ ProviderContainer makeContainer({
 void main() {
   test('happy path: idle -> driving, ticks update the state', () async {
     final location = FakeLocation();
-    final container =
-        makeContainer(location: location, repo: FakeRepo());
+    final container = makeContainer(location: location, repo: FakeRepo());
     final controller = container.read(driveControllerProvider.notifier);
 
     expect(container.read(driveControllerProvider), const DriveState.idle());
@@ -160,7 +161,9 @@ void main() {
 
   test('permission denied -> error state with guidance', () async {
     final container = makeContainer(
-      location: FakeLocation(permission: LocationPermissionStatus.deniedForever),
+      location: FakeLocation(
+        permission: LocationPermissionStatus.deniedForever,
+      ),
       repo: FakeRepo(),
     );
     final controller = container.read(driveControllerProvider.notifier);
@@ -186,8 +189,7 @@ void main() {
 
   test('endDrive finalizes and lands in done with a journey', () async {
     final location = FakeLocation();
-    final container =
-        makeContainer(location: location, repo: FakeRepo());
+    final container = makeContainer(location: location, repo: FakeRepo());
     final controller = container.read(driveControllerProvider.notifier);
 
     await controller.startDrive(destination: destination);

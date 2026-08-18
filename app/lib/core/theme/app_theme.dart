@@ -27,7 +27,10 @@ class AdviceColors extends ThemeExtension<AdviceColors> {
       AdviceAction.easeOff: (bg: Color(0xFFFFCA28), fg: Color(0xFF241A00)),
       AdviceAction.brakeGently: (bg: Color(0xFFFF9800), fg: Color(0xFF261300)),
       AdviceAction.brake: (bg: Color(0xFFEF5350), fg: Color(0xFF2B0606)),
-      AdviceAction.prepareSignal: (bg: Color(0xFF64B5F6), fg: Color(0xFF06233B)),
+      AdviceAction.prepareSignal: (
+        bg: Color(0xFF64B5F6),
+        fg: Color(0xFF06233B),
+      ),
     },
   );
 
