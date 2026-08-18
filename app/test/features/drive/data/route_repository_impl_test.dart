@@ -6,9 +6,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http_mock_adapter/http_mock_adapter.dart';
 import 'package:smoothdrive/core/error/failure.dart';
 import 'package:smoothdrive/features/drive/data/dto/route_dtos.dart';
-import 'package:smoothdrive/features/drive/domain/entities/advice.dart';
 import 'package:smoothdrive/features/drive/data/route_remote_data_source.dart';
 import 'package:smoothdrive/features/drive/data/route_repository_impl.dart';
+import 'package:smoothdrive/features/drive/domain/entities/advice.dart';
 import 'package:smoothdrive/features/drive/domain/entities/route_analysis.dart';
 
 const start = Coord(lat: 51.0, lon: 0.0);
