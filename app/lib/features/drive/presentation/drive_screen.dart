@@ -2,9 +2,11 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
+import '../../../core/error/failure.dart';
 import '../../../core/router/app_router.dart';
 import '../../../core/utils/units.dart';
 import '../../../shared/widgets/big_action_button.dart';
@@ -18,6 +20,11 @@ import 'widgets/speed_display.dart';
 import 'widgets/speed_limit_sign.dart';
 import 'widgets/upcoming_events_list.dart';
 
+/// Wall-clock threshold: if no GPS tick has arrived within this duration,
+/// show the "GPS signal lost" banner. Uses wall clock (not GPS timestamps)
+/// so replay mode never triggers it.
+const _gpsStaleThreshold = Duration(seconds: 10);
+
 class DriveScreen extends ConsumerStatefulWidget {
   const DriveScreen({super.key});
 
@@ -27,16 +34,28 @@ class DriveScreen extends ConsumerStatefulWidget {
 
 class _DriveScreenState extends ConsumerState<DriveScreen> {
   bool _showDebug = true;
+  Timer? _refreshTimer;
+
+  /// Wall-clock timestamp of the most recent GPS tick received.
+  /// Null until the first tick arrives. Reset when leaving driving state.
+  DateTime? _lastTickAt;
 
   @override
   void initState() {
     super.initState();
-    // Screen stays awake for the whole drive (dashboard-mount MVP).
     unawaited(WakelockPlus.enable().catchError((_) {}));
+    // Periodic refresh so the GPS-staleness check updates even when ticks stop.
+    _refreshTimer = Timer.periodic(
+      const Duration(seconds: 5),
+      (_) {
+        if (mounted) setState(() {});
+      },
+    );
   }
 
   @override
   void dispose() {
+    _refreshTimer?.cancel();
     unawaited(WakelockPlus.disable().catchError((_) {}));
     super.dispose();
   }
@@ -45,6 +64,16 @@ class _DriveScreenState extends ConsumerState<DriveScreen> {
   Widget build(BuildContext context) {
     final state = ref.watch(driveControllerProvider);
     final formatter = ref.watch(unitsFormatterProvider);
+
+    // Track wall-clock time of each arriving tick to detect GPS signal loss.
+    ref.listen<DriveState>(driveControllerProvider, (prev, next) {
+      if (next case DriveDriving(:final tick) when tick != null) {
+        _lastTickAt = DateTime.now();
+      } else if (next is! DriveDriving) {
+        _lastTickAt = null;
+      }
+    });
+
     return Scaffold(
       body: SafeArea(
         child: switch (state) {
@@ -52,12 +81,13 @@ class _DriveScreenState extends ConsumerState<DriveScreen> {
           DriveAnalyzing() =>
             const _Progress('Analyzing your route…\nThis can take a moment'),
           DriveSaving() => const _Progress('Saving your journey…'),
-          DriveDriving(:final tick, :final startedAt) =>
-            _DrivingView(
+          DriveDriving(:final tick, :final startedAt) => _DrivingView(
               tick: tick,
               startedAt: startedAt,
               formatter: formatter,
               showDebug: _showDebug,
+              lastTickAt: _lastTickAt,
+              now: DateTime.now(),
               onToggleDebug: () => setState(() => _showDebug = !_showDebug),
               onEnd: () async {
                 final controller = ref.read(driveControllerProvider.notifier);
@@ -76,7 +106,10 @@ class _DriveScreenState extends ConsumerState<DriveScreen> {
               },
             ),
           DriveError(:final failure) => _ErrorView(
-              message: failure.message,
+              failure: failure,
+              onOpenSettings: failure is LocationFailure
+                  ? () => unawaited(Geolocator.openAppSettings())
+                  : null,
               onClose: () {
                 ref.read(driveControllerProvider.notifier).reset();
                 context.go(Routes.home);
@@ -95,6 +128,8 @@ class _DrivingView extends StatelessWidget {
     required this.startedAt,
     required this.formatter,
     required this.showDebug,
+    required this.lastTickAt,
+    required this.now,
     required this.onToggleDebug,
     required this.onEnd,
   });
@@ -103,8 +138,14 @@ class _DrivingView extends StatelessWidget {
   final DateTime startedAt;
   final UnitsFormatter formatter;
   final bool showDebug;
+  final DateTime? lastTickAt;
+  final DateTime now;
   final VoidCallback onToggleDebug;
   final Future<void> Function() onEnd;
+
+  bool get _isGpsStale =>
+      lastTickAt != null &&
+      now.difference(lastTickAt!) >= _gpsStaleThreshold;
 
   @override
   Widget build(BuildContext context) {
@@ -149,6 +190,13 @@ class _DrivingView extends StatelessWidget {
               ],
             ),
             const Spacer(),
+            if (_isGpsStale)
+              _StatusStrip(
+                icon: Icons.gps_off,
+                text: 'GPS signal lost',
+                color: scheme.errorContainer,
+                onColor: scheme.onErrorContainer,
+              ),
             if (tick?.failure != null)
               _StatusStrip(
                 icon: Icons.cloud_off,
@@ -276,10 +324,25 @@ class _DoneView extends StatelessWidget {
 }
 
 class _ErrorView extends StatelessWidget {
-  const _ErrorView({required this.message, required this.onClose});
+  const _ErrorView({
+    required this.failure,
+    required this.onClose,
+    this.onOpenSettings,
+  });
 
-  final String message;
+  final Failure failure;
   final VoidCallback onClose;
+
+  /// Non-null for recoverable permission errors — shows "Open Settings" as
+  /// the primary action so the user can unblock the app without hunting for it.
+  final VoidCallback? onOpenSettings;
+
+  IconData get _icon => switch (failure) {
+        NetworkFailure() => Icons.wifi_off_rounded,
+        UpstreamFailure() => Icons.cloud_off_outlined,
+        LocationFailure() => Icons.location_off,
+        _ => Icons.error_outline,
+      };
 
   @override
   Widget build(BuildContext context) {
@@ -289,16 +352,23 @@ class _ErrorView extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Icon(Icons.error_outline,
-              size: 64, color: Theme.of(context).colorScheme.error),
+          Icon(_icon, size: 64, color: Theme.of(context).colorScheme.error),
           const SizedBox(height: 16),
           Text(
-            message,
+            failure.message,
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.titleMedium,
           ),
           const SizedBox(height: 32),
-          BigActionButton(label: 'Back to Home', onPressed: onClose),
+          if (onOpenSettings != null) ...[
+            BigActionButton(
+              label: 'Open Settings',
+              onPressed: onOpenSettings!,
+            ),
+            const SizedBox(height: 12),
+            TextButton(onPressed: onClose, child: const Text('Back to Home')),
+          ] else
+            BigActionButton(label: 'Back to Home', onPressed: onClose),
         ],
       ),
     );

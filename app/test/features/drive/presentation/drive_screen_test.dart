@@ -193,4 +193,39 @@ void main() {
       findsOneWidget,
     );
   });
+
+  testWidgets('network failure shows wifi_off icon and Back to Home button',
+      (tester) async {
+    await pumpDrive(
+      tester,
+      const DriveState.error(failure: NetworkFailure()),
+    );
+    expect(find.byIcon(Icons.wifi_off_rounded), findsOneWidget);
+    expect(find.text('Back to Home'), findsOneWidget);
+    expect(find.text('Open Settings'), findsNothing);
+  });
+
+  testWidgets('location failure shows location_off icon and Open Settings',
+      (tester) async {
+    await pumpDrive(
+      tester,
+      const DriveState.error(
+        failure: LocationFailure(
+          'Location permission is blocked — enable it in system settings',
+        ),
+      ),
+    );
+    expect(find.byIcon(Icons.location_off), findsOneWidget);
+    expect(find.text('Open Settings'), findsOneWidget);
+    expect(find.text('Back to Home'), findsOneWidget);
+  });
+
+  testWidgets('GPS staleness banner absent when drive just started (no ticks yet)',
+      (tester) async {
+    // Before any tick arrives _lastTickAt is null → banner must not show.
+    // The banner only appears once a tick has been received AND 10s have
+    // elapsed since then; that boundary is exercised in the integration test.
+    await pumpDrive(tester, driving());
+    expect(find.text('GPS signal lost'), findsNothing);
+  });
 }
