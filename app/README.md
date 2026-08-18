@@ -13,7 +13,7 @@ Real-time driving coach that scores smoothness (acceleration, braking, speed com
 | Android SDK | API 33+ |
 | JDK | 17 |
 
-Install Flutter: https://docs.flutter.dev/get-started/install/macos/android
+**First time on this machine?** See the step-by-step guide: [`docs/local-setup.md`](../docs/local-setup.md) — covers Flutter install, JDK, Android SDK, emulator creation, and physical device setup.
 
 Verify your setup:
 
